@@ -203,17 +203,17 @@ public cmdSkinMain(const id) {
     }
 
     new szMenu[512];
-    new iLen = formatex(szMenu, charsmax(szMenu), "\rHnsSkin \w- \d皮肤系统^n^n");
+    new iLen = formatex(szMenu, charsmax(szMenu), "\bHnsSkin \w- \d皮肤系统^n^n");
 
     // ─── 皮肤选择 ───
-    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\y──────── 皮肤选择 ────────^n");
-    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1. \wT 土匪皮肤 \d(隐藏大师)^n");
-    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r2. \wCT 警察皮肤 \d(反恐精英)^n");
-    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r3. \w刀皮肤 \d(近战武器)^n^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\y──────── \w皮肤选择 \y────────^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\g1. \wT 土匪皮肤 \d(隐藏大师)^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\g2. \wCT 警察皮肤 \d(反恐精英)^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\g3. \w刀皮肤 \d(近战武器)^n^n");
 
     // ─── 帮助 ───
-    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\y──────── 帮助 ────────^n");
-    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r8. \w帮助说明^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\y──────── \w帮助 \y────────^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\b8. \w帮助说明^n");
     iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r0. \w退出^n");
 
     show_menu(id, (1<<0)|(1<<1)|(1<<2)|(1<<8)|(1<<9), szMenu, -1, "HnsSkinMainMenu");
@@ -871,8 +871,8 @@ showSkinSelectMenu(const id) {
     new szOwnedInfo[64];
     // 统计已解锁数量
     new iOwnedCount = count_owned_skins(id, iType);
-    formatex(szOwnedInfo, charsmax(szOwnedInfo), "\r%d\w/\d%d \w已解锁", iOwnedCount, iTotalModels);
-    iLen = formatex(szMenu, charsmax(szMenu), "\rHnsSkin \w- \y%s^n\y──────── 第%d/%d页 ^1(%s) ────────^n^n", szTitle, iPage + 1, (iTotalModels + 6) / 7, szOwnedInfo);
+    formatex(szOwnedInfo, charsmax(szOwnedInfo), "\g%d\w/\d%d \w已解锁", iOwnedCount, iTotalModels);
+    iLen = formatex(szMenu, charsmax(szMenu), "\bHnsSkin \w- \y%s^n\y──── \w第%d/%d页 ^1%s \y────────^n^n", szTitle, iPage + 1, (iTotalModels + 6) / 7, szOwnedInfo);
     
     new szName[64], iModelIdx;
     new bool:bOwned;
@@ -888,7 +888,7 @@ showSkinSelectMenu(const id) {
         if (iModelIdx == iSelected) copy(szMarker, charsmax(szMarker), " ✓");
         
         if (bOwned) {
-            iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r%d. \w%s%s^n", iSlot, szName, szMarker);
+            iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\g%d. \w%s%s^n", iSlot, szName, szMarker);
         } else {
             iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r%d. \d%s \r(未解锁)^n", iSlot, szName);
         }
@@ -899,17 +899,17 @@ showSkinSelectMenu(const id) {
         iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
     }
     
-    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\y───────^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\y────────^n");
     
     // 翻页按钮
     if (iPage > 0) {
-        iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r0. \w上一页^n");
+        iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\b0. \w上一页^n");
     } else {
-        iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r0. \w返回^n");
+        iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\b0. \w返回^n");
     }
     
     if (iTotalModels > iEnd) {
-        iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r9. \w下一页^n");
+        iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\b9. \w下一页^n");
     } else {
         iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "^n");
     }

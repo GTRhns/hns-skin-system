@@ -6,6 +6,12 @@
 
 # HnsSkin — CS 1.6 独立皮肤系统（含 DLC 扩展）
 
+[![AMX Mod X](https://img.shields.io/badge/AMX_Mod_X-1.10+-blue)]()
+[![ReGameDLL](https://img.shields.io/badge/ReGameDLL-5.x-orange)]()
+[![Version](https://img.shields.io/badge/Version-1.0.0-green)]()
+[![DLC](https://img.shields.io/badge/DLC-Sound_%2B_Accessory-9cf)]()
+[![License](https://img.shields.io/badge/License-GPLv3-success)]()
+
 > 一款**完全独立**的 Counter-Strike 1.6 AMX Mod X 皮肤插件。
 > 不依赖任何比赛系统，即插即用；同时提供 DLC 扩展（音效、饰品配件）。
 >

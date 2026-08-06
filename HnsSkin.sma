@@ -203,13 +203,20 @@ public cmdSkinMain(const id) {
     }
 
     new szMenu[512];
-    new iLen = formatex(szMenu, charsmax(szMenu), "\y皮肤系统主菜单^n\y───────^n^n");
-    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1. \wT(土匪)皮肤选择^n");
-    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r2. \wCT(警察)皮肤选择^n");
-    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r3. \w刀皮肤选择^n^n");
+    new iLen = formatex(szMenu, charsmax(szMenu), "\rHnsSkin \w- \d皮肤系统^n^n");
+
+    // ─── 皮肤选择 ───
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\y──────── 皮肤选择 ────────^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r1. \wT 土匪皮肤 \d(隐藏大师)^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r2. \wCT 警察皮肤 \d(反恐精英)^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r3. \w刀皮肤 \d(近战武器)^n^n");
+
+    // ─── 帮助 ───
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\y──────── 帮助 ────────^n");
+    iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r8. \w帮助说明^n");
     iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\r0. \w退出^n");
 
-    show_menu(id, (1<<0)|(1<<1)|(1<<2)|(1<<9), szMenu, -1, "HnsSkinMainMenu");
+    show_menu(id, (1<<0)|(1<<1)|(1<<2)|(1<<8)|(1<<9), szMenu, -1, "HnsSkinMainMenu");
     return PLUGIN_HANDLED;
 }
 
@@ -232,8 +239,26 @@ public handleSkinMainMenu(const id, const key) {
             g_iSkinSelectPage[id] = 0;
             showSkinSelectMenu(id);
         }
+        case 8: { // 帮助说明
+            showSkinHelp(id);
+        }
     }
     return PLUGIN_HANDLED;
+}
+
+// ============================================================
+//  皮肤系统帮助说明
+// ============================================================
+public showSkinHelp(const id) {
+    if (!is_user_connected(id)) return;
+
+    client_print_color(id, print_team_default, "^4[HnsSkin] ^1皮肤系统使用帮助:");
+    client_print_color(id, print_team_default, "^1  /^3skin ^1- 打开皮肤主菜单");
+    client_print_color(id, print_team_default, "^1  /^3skin_t ^1- 直接选 T 皮肤");
+    client_print_color(id, print_team_default, "^1  /^3skin_ct ^1- 直接选 CT 皮肤");
+    client_print_color(id, print_team_default, "^1  /^3skin_knife ^1- 直接选刀皮肤");
+    client_print_color(id, print_team_default, "^1  /^3skin ^1- 选择后自动保存，重生自动应用");
+    client_print_color(id, print_team_default, "^4[HnsSkin] ^1更多命令见仓库 README 或 /skinmenu");
 }
 
 // ============================================================
@@ -793,6 +818,15 @@ bool:is_skin_owned(const id, const iType, const iModelIdx) {
     return false;
 }
 
+// 统计玩家在某类型下已解锁的皮肤数量
+stock count_owned_skins(const id, const iType) {
+    new iCount;
+    if (iType == 0)      iCount = g_iOwnedTCount[id];
+    else if (iType == 1) iCount = g_iOwnedCTCount[id];
+    else                 iCount = g_iOwnedKnifeCount[id];
+    return iCount;
+}
+
 showSkinSelectMenu(const id) {
     if (!is_user_connected(id)) return;
     
@@ -834,7 +868,11 @@ showSkinSelectMenu(const id) {
     if (iEnd > iTotalModels) iEnd = iTotalModels;
     
     new szMenu[512], iLen;
-    iLen = formatex(szMenu, charsmax(szMenu), "\y%s \r- \w选择皮肤^n\y─────── 第%d页 ───────^n^n", szTitle, iPage + 1);
+    new szOwnedInfo[64];
+    // 统计已解锁数量
+    new iOwnedCount = count_owned_skins(id, iType);
+    formatex(szOwnedInfo, charsmax(szOwnedInfo), "\r%d\w/\d%d \w已解锁", iOwnedCount, iTotalModels);
+    iLen = formatex(szMenu, charsmax(szMenu), "\rHnsSkin \w- \y%s^n\y──────── 第%d/%d页 ^1(%s) ────────^n^n", szTitle, iPage + 1, (iTotalModels + 6) / 7, szOwnedInfo);
     
     new szName[64], iModelIdx;
     new bool:bOwned;

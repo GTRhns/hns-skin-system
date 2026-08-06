@@ -19,6 +19,7 @@
 ---
 ## 目录
 
+- [示例图](#示例图)
 - [这是什么](#这是什么)
 - [项目结构](#项目结构)
 - [工作原理：它是怎么触发的](#工作原理它是怎么触发的)
@@ -35,6 +36,20 @@
 
 ---
 
+## 示例图
+
+以下是游戏内实际效果截图，展示不同皮肤模型在 CS 1.6 场景中的展示效果：
+
+<div align="center">
+
+<img src="assets/screenshots/skin_showcase_1.jpg" alt="皮肤展示 1" width="420">
+<img src="assets/screenshots/skin_showcase_2.jpg" alt="皮肤展示 2" width="420">
+<img src="assets/screenshots/skin_showcase_3.jpg" alt="皮肤展示 3" width="420">
+<img src="assets/screenshots/skin_showcase_4.jpg" alt="皮肤展示 4" width="420">
+
+</div>
+
+---
 ## 这是什么
 
 HnsSkin 是一个**独立的皮肤加载/发放系统**。核心插件 `HnsSkin.sma` 只负责一件事：**让玩家能用上自定义的 T / CT / 刀皮肤**，并通过 `nvault` 永久记住每个玩家拥有哪些皮肤。

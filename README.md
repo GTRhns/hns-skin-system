@@ -356,3 +356,19 @@ amxx plugins   # 确认三个插件都已加载
 
 **HnsSkin Skin System** — Built with passion for the CS 1.6 HNS community.
 维护者：**LINNA**（WeChat `19391496561` | Telegram `@CKLINNA`）
+
+---
+
+<div align="center">
+
+### <span style="color:red">⚠️ 严令禁止倒卖插件 ⚠️</span>
+
+<span style="color:red">**本项目为原创独立开发作品，严禁任何形式的倒卖、转售或商业牟利行为！**</span>
+
+<span style="color:red">源码已开源仅供学习交流与个人使用，未经授权不得将其打包、改头换面后用于收费出售、捆绑销售或二次分发获利。</span>
+
+<span style="color:red">**一经发现，将直接追究相关法律责任，并停止后续更新与技术支持。**</span>
+
+<span style="color:#ff8c00">如发现有人倒卖本插件，欢迎向维护者 **LINNA** 举报（WeChat `19391496561` | Telegram `@CKLINNA`）。</span>
+
+</div>

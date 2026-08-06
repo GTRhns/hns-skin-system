@@ -1,3 +1,9 @@
+<div align="center">
+
+<img src="assets/preview.png" alt="HnsSkin" width="320">
+
+<br>
+
 # HnsSkin — CS 1.6 独立皮肤系统（含 DLC 扩展）
 
 > 一款**完全独立**的 Counter-Strike 1.6 AMX Mod X 皮肤插件。
@@ -5,9 +11,12 @@
 >
 > **维护者 / 联系人：LINNA**
 > WeChat: `19391496561` | Telegram: `@CKLINNA`
+>
+> Art by Linna
+
+</div>
 
 ---
-
 ## 目录
 
 - [这是什么](#这是什么)

@@ -1,0 +1,16 @@
+# 编译产物
+*.amxx
+compiled/*.amxx
+
+# Python / 通用
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# 本地配置
+*.local
+
+# 保留源码但不提交编译产物
+# 如需提交 .amxx 请删除下面两行
+compiled/

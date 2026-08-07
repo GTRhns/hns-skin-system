@@ -16,7 +16,6 @@
 > 不依赖任何比赛系统，即插即用；同时提供 DLC 扩展（音效、饰品配件）。
 >
 > **维护者 / 联系人：LINNA**
-> WeChat: `19391496561` | Telegram: `@CKLINNA`
 >
 > Art by Linna
 
@@ -355,7 +354,7 @@ amxx plugins   # 确认三个插件都已加载
 ---
 
 **HnsSkin Skin System** — Built with passion for the CS 1.6 HNS community.
-维护者：**LINNA**（WeChat `19391496561` | Telegram `@CKLINNA`）
+维护者：**LINNA**
 
 ---
 
@@ -369,6 +368,6 @@ amxx plugins   # 确认三个插件都已加载
 
 <span style="color:red">**一经发现，将直接追究相关法律责任，并停止后续更新与技术支持。**</span>
 
-<span style="color:#ff8c00">如发现有人倒卖本插件，欢迎向维护者 **LINNA** 举报（WeChat `19391496561` | Telegram `@CKLINNA`）。</span>
+<span style="color:#ff8c00">如发现有人倒卖本插件，欢迎向维护者 **LINNA** 举报。</span>
 
 </div>

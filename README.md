@@ -8,7 +8,7 @@
 
 [![AMX Mod X](https://img.shields.io/badge/AMX_Mod_X-1.10+-blue)]()
 [![ReGameDLL](https://img.shields.io/badge/ReGameDLL-5.x-orange)]()
-[![Version](https://img.shields.io/badge/Version-1.0.0-green)]()
+[![Version](https://img.shields.io/badge/Version-1.1.0-green)]()
 [![DLC](https://img.shields.io/badge/DLC-Sound_%2B_Accessory-9cf)]()
 [![License](https://img.shields.io/badge/License-GPLv3-success)]()
 
@@ -344,6 +344,42 @@ amxx plugins   # 确认三个插件都已加载
 - 插件没加载 → 看 `addons/amxmodx/logs/` 下的错误日志，确认模块是否齐全。
 - 模型闪成原始 → 检查 `player_models.ini` 路径是否大小写一致、模型是否已 `precache`。
 - DLC 无音效 → 确认 ReGameDLL 已装，且音效已 `precache_sound`。
+
+---
+
+## 版本更新日志
+
+### v1.1.0（2026-08-10）— 修复多项 bug + 新增 USP 皮肤
+
+**🆕 新增内容**
+
+| 新增 | 说明 |
+|------|------|
+| USP 皮肤系统 | 新增完整的第一人称视角 USP 枪械皮肤支持，玩家可选择自定义 USP 模型 |
+| `/skin_usp` 命令 | 直接打开 USP 皮肤选择菜单 |
+| USP 皮肤回退机制 | 所选模型文件不存在时自动回退默认 USP，避免视角模型丢失/报错 |
+
+**🔧 修复内容**
+
+| 修复 | 说明 |
+|------|------|
+| 换队后皮肤不刷新 | 通过捕获 `TeamInfo` 事件，玩家换队时立即重新套用对应阵营皮肤，不再闪回默认模型 |
+| 切武器视角模型丢失 | 新增 `Ham_Item_Deploy` 钩子，切到刀/USP 时自动重新应用已选皮肤 |
+| 刀皮肤切换丢失 | 修正 `CurWeapon` 消息拦截逻辑，切刀时视角内模型保持正确 |
+| 模型缺失兼容 | 皮肤文件不存在时安全回退默认模型，不再闪成原始模型或报错 |
+
+**📁 配置更新**
+
+- `player_models.ini` 新增 `[USP]` 分区，用于配置 USP 皮肤模型库。
+
+**⚠️ 升级提示**
+
+- 直接替换 `HnsSkin.amxx` 并覆盖 `player_models.ini` 即可，已有玩家皮肤数据（nvault）不受影响、自动保留。
+
+### v1.0.0（初始版本）
+
+- 独立皮肤系统首版发布：T / CT / 刀皮肤加载与发放、`nvault` 持久化、分页菜单。
+- 附带 DLC 扩展：音效（`HnsDlcSkin.amxx`）与饰品（`HnsDlcAccessory.amxx`）。
 
 ---
 

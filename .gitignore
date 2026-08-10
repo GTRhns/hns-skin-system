@@ -14,3 +14,7 @@ Thumbs.db
 # 说明：编译产物 (compiled/*.amxx, dlc/compiled/*.amxx) 故意保留并提交，
 # 作为开箱即用的预编译发布包，方便使用者直接复制到服务器。
 # 源码 (HnsSkin.sma, dlc/*.sma) 同时保留，便于二次开发。
+
+# 编译器与冗余文件（不进仓库）
+amxxpc32.so
+/HnsSkin.amxx

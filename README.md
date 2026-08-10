@@ -8,7 +8,7 @@
 
 [![AMX Mod X](https://img.shields.io/badge/AMX_Mod_X-1.10+-blue)]()
 [![ReGameDLL](https://img.shields.io/badge/ReGameDLL-5.x-orange)]()
-[![Version](https://img.shields.io/badge/Version-1.1.0-green)]()
+[![Version](https://img.shields.io/badge/Version-2.0.0-green)]()
 [![DLC](https://img.shields.io/badge/DLC-Sound_%2B_Accessory-9cf)]()
 [![License](https://img.shields.io/badge/License-GPLv3-success)]()
 
@@ -98,6 +98,13 @@ hns-skin-system/
 ├── LICENSE                  ← GPLv3 开源协议
 ├── assets/
 │   └── preview.png          ← 预览图
+├── compiled/
+│   ├── HnsSkin.amxx            ← 编译产物（含 WPM 集成）
+│   └── addon_weapon_player_model.amxx ← WPM API 依赖插件
+├── include/
+│   └── api_weapon_player_model.inc   ← WPM API 头文件
+├── models/
+│   └── p_null.mdl            ← WPM 附件移动占位模型
 └── dlc/
     ├── HnsDlcSkin.sma       ← DLC：音效扩展（死亡音效 / 刀击音效）
     ├── HnsDlcAccessory.sma  ← DLC：饰品扩展（帽子 / 翅膀 / 面部）
@@ -128,8 +135,9 @@ hns-skin-system/
    │
    └─→ 玩家选定后，写入 nvault 并立即应用：
          - T/CT 皮肤 → 调用引擎 SetModel 换身体模型
-         - 刀皮肤    → 同时设置 pev_viewmodel（自己看）
-                       和 pev_weaponmodel（别人看）
+         - 刀皮肤    → 同时设置 pev_viewmodel2（自己看）
+                        pev_weaponmodel2（别人看）
+                        + WPM follow 实体（更可靠的第三人称渲染）
 ```
 
 **关键触发点：**
@@ -182,7 +190,7 @@ hns-skin-system/
 |----|------|
 | **语言** | Pawn（AMX Mod X 脚本语言，C 风格） |
 | **运行环境** | Counter-Strike 1.6 + AMX Mod X 1.8.3+ |
-| **依赖模块** | `amxmodx`、`fakemeta`、`amxmisc`、`reapi`、`nvault`、`hamsandwich`、`engine` |
+| **依赖模块** | `amxmodx`、`fakemeta`、`amxmisc`、`reapi`、`nvault`、`hamsandwich`、`engine`、`api_weapon_player_model`（WPM） |
 | **编译工具** | `amxxpc`（AMX Mod X 自带编译器） |
 | **数据存储** | `nvault`（AMXX 内置持久化键值库） |
 
@@ -206,6 +214,8 @@ amxxpc dlc/HnsDlcAccessory.sma
 cp *.amxx <cstrike>/addons/amxmodx/plugins/
 
 # 3. 在 plugins.ini 里启用
+# ⚠️ WPM 依赖插件必须放在 HnsSkin.amxx 之前加载
+echo "addon_weapon_player_model.amxx" >> <cstrike>/addons/amxmodx/configs/plugins.ini
 echo "HnsSkin.amxx" >> <cstrike>/addons/amxmodx/configs/plugins.ini
 echo "HnsDlcSkin.amxx" >> <cstrike>/addons/amxmodx/configs/plugins.ini
 echo "HnsDlcAccessory.amxx" >> <cstrike>/addons/amxmodx/configs/plugins.ini
@@ -217,14 +227,19 @@ mkdir -p <cstrike>/addons/amxmodx/configs/mixsystem/
 cp player_models.ini                <cstrike>/addons/amxmodx/configs/mixsystem/
 cp dlc/configs/dlc_skin.ini         <cstrike>/addons/amxmodx/configs/mixsystem/
 cp dlc/configs/dlc_accessory.ini    <cstrike>/addons/amxmodx/configs/mixsystem/
+
+# 5. 复制 WPM 依赖
+cp compiled/addon_weapon_player_model.amxx <cstrike>/addons/amxmodx/plugins/
+cp models/p_null.mdl                <cstrike>/models/
 ```
 
 ```bash
-# 5. 重启服务器或换图生效
-amxx plugins   # 确认三个插件都已加载
+# 6. 重启服务器或换图生效
+amxx plugins   # 确认四个插件都已加载
 ```
 
 > **注意**：`HnsDlcSkin.sma` 和 `HnsDlcAccessory.sma` 需要 ReGameDLL。若服务器未装，可只部署 `HnsSkin.amxx`。
+> **注意**：`addon_weapon_player_model.amxx` 是第三人称刀皮的硬依赖，未加载时 HnsSkin 会因找不到 native 而无法启动，务必安装。
 
 ---
 
@@ -243,7 +258,7 @@ amxx plugins   # 确认三个插件都已加载
 显示名称 models/v_knife.mdl
 ```
 
-刀模型只需填 `v_knife.mdl`，插件会自动把 `p_knife.mdl` 设为第三人称模型。
+刀模型只需填 `v_knife.mdl`，插件会自动把 `p_knife.mdl` 设为第三人称模型，并通过 WPM follow 实体稳定渲染（即使玩家套了自定义人物模型也能正常显示）。
 
 ### `dlc_skin.ini`（音效配置）
 
@@ -348,6 +363,40 @@ amxx plugins   # 确认三个插件都已加载
 ---
 
 ## 版本更新日志
+
+### v2.0.0（2026-08-10）— 第三人称刀皮肤 WPM 增强
+
+**🆕 新增内容**
+
+| 新增 | 说明 |
+|------|------|
+| 第三人称刀皮肤 WPM 渲染 | 接入 [Weapon Player Model API](https://github.com/YoshiokaHaruki/AMXX-API-Weapon-Player-Model)，用 `MOVETYPE_FOLLOW` 独立实体跟随玩家骨骼渲染刀皮，彻底解决"玩家套自定义模型后第三人称刀皮失效"的老问题 |
+| `hns_skin_wpm` 开关 | 新增 cvar（默认 `1` 开启），可设 `0` 关闭并回退到传统的 `pev_weaponmodel2` 渲染 |
+| WPM 依赖文件 | 附带 `addon_weapon_player_model.amxx`、`api_weapon_player_model.inc`、`p_null.mdl`，开箱即用 |
+
+**🔧 改动点**
+
+- `set_player_knife_view()` 在原有第一/第三人称设置后，追加 `api_wpn_player_model_set()` 创建 follow 实体渲染刀皮
+- `client_disconnected()` 追加 `api_wpn_player_model_remove()` 清理实体
+- 新增 `addon_weapon_player_model.amxx` 为硬依赖，需与 `HnsSkin.amxx` 同时加载
+
+**⚠️ 升级提示**
+
+- 替换 `HnsSkin.amxx` 的同时，必须安装 `addon_weapon_player_model.amxx`（放在 `HnsSkin.amxx` 之前加载），否则插件无法启动。
+- 已有玩家皮肤数据（nvault）不受影响，自动保留。
+
+### v1.1.1（2026-08-10）— 修复换队后默认皮肤不跟随阵营
+
+**🔧 修复内容（核心）**
+
+| 修复 | 说明 |
+|------|------|
+| 换队后「默认皮肤」不跟随阵营 | **根因**：`rg_reset_user_model(id)` 默认 `update_index=false`，只重置模型标识字符串，**不刷新可见模型**。玩家未选择皮肤（默认皮肤）换队时，旧阵营模型残留，导致 T 穿上 CT 衣服、或警察刀匪变匪后皮肤不变。**修复**：改为 `rg_reset_user_model(id, true)`，换队时立即刷新可见模型到新阵营默认 |
+| 刀切武器皮肤丢失 | 修正 `CurWeapon` 消息回调参数：`register_message` 回调签名是 `(msg_id, dest, in_entity)`，玩家 id 取第 3 个参数 `in_entity`，避免误用 msg_id 导致切刀后视角刀皮被还原 |
+
+**⚠️ 升级提示**
+
+- 直接替换 `HnsSkin.amxx` 即可。此项修复同时已同步至服务器实际使用的 `HnsMatchSkin.amxx`。
 
 ### v1.1.0（2026-08-10）— 修复多项 bug + 新增 USP 皮肤
 

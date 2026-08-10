@@ -26,6 +26,8 @@
 // View model will be set via find_weapon_and_set_view()
 #include <nvault>
 #include <hamsandwich>
+// WPM API: 第三人称武器/刀皮肤渲染 (需加载 addon_weapon_player_model.amxx)
+#include <api_weapon_player_model>
 // pev_viewmodel is 27, pev_weaponmodel is 14 (fakemeta.inc)
 
 // 前向声明
@@ -36,7 +38,7 @@ stock give_skin(const id, const iType, const iSkinIndex);
 //  插件信息
 // ============================================================
 #define PLUGIN_NAME "HnsSkin Skin System"
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "2.0.0"
 #define PLUGIN_AUTHOR "OpenSkin"
 
 // ============================================================
@@ -101,6 +103,9 @@ new g_pShared;
 new g_iSkinSelectType[MAX_PLAYERS + 1];   // 0=T, 1=CT, 2=Knife, 3=USP
 new g_iSkinSelectPage[MAX_PLAYERS + 1];
 
+// WPM 第三人称刀皮开关 cvar 句柄
+new pcvar:g_pWPMEnabled;
+
 // ============================================================
 //  全局变量 - 皮肤发放
 // ============================================================
@@ -137,6 +142,10 @@ public plugin_init() {
     
     // 注册CVAR：标记高级皮肤系统已激活，防止 player_models.inc 冲突
     register_cvar("skinsys_advanced", "1");
+
+    // WPM 第三人称刀皮渲染开关 (1=开启, 0=关闭回退到传统 pev_weaponmodel2)
+    // 需同时加载 addon_weapon_player_model.amxx
+    g_pWPMEnabled = create_cvar("hns_skin_wpm", "1", FCVAR_SERVER);
 
     // CVAR：共享皮肤模式 (默认开启: CT/T 共用同一套人物皮肤，用于KZ服)
     g_pShared = register_cvar("skinsys_shared", "1");
@@ -331,6 +340,12 @@ stock set_player_knife_view(const id, const szPath[]) {
     
     // 第三人称视角模型 (别人看到的) — 直接设置在玩家实体上
     set_pev(id, pev_weaponmodel2, szPathP);
+
+    // WPM API: 用独立 follow 实体渲染第三人称刀皮（更可靠，不受自定义玩家模型影响）
+    // cvar hns_skin_wpm 默认开启，可手动关闭回退到传统方式
+    if (get_pcvar_num(g_pWPMEnabled)) {
+        api_wpn_player_model_set(id, szPathP, 0, 0, 0, { 0.0, 0.0 });
+    }
 }
 
 // 设置USP第一人称视角模型
@@ -452,6 +467,11 @@ public client_putinserver(id) {
 public client_disconnected(id) {
     if (is_user_bot(id) || is_user_hltv(id)) {
         return;
+    }
+
+    // 清理 WPM 第三人称刀皮实体
+    if (get_pcvar_num(g_pWPMEnabled)) {
+        api_wpn_player_model_remove(id);
     }
 
     save_player_skins(id);

@@ -40,6 +40,7 @@ player_models.ini
    │
    ▼
 刀皮肤额外：CurWeapon 消息 → 切刀时重设 pev_viewmodel2 / pev_weaponmodel2
+   + WPM follow 实体（api_wpn_player_model_set）稳定渲染第三人称刀皮
 ```
 
 ### 1.3 关键触发点（Event 钩子）

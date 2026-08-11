@@ -99,7 +99,9 @@ hns-skin-system/
 ├── LICENSE                  ← GPLv3 开源协议
 ├── assets/
 │   └── preview.png          ← 预览图
-├── versions/                ← 历史版本源码归档（v1.0.0 / v1.1.0 / v2.0.0）
+├── versions/                ← 历史版本源码归档（独立版 v1.0.0/v1.1.0/v2.0.0 + 比赛版 v5.0.0）
+├── scripting/
+│   └── addon_weapon_player_model.sma ← WPM API 依赖插件源码
 ├── compiled/
 │   ├── HnsSkin.amxx            ← 编译产物（含 WPM 集成）
 │   └── addon_weapon_player_model.amxx ← WPM API 依赖插件
@@ -366,13 +368,21 @@ amxx plugins   # 确认四个插件都已加载
 
 ## 版本历史归档
 
-HnsSkin 历代版本源码已按版本独立归档在 [`versions/`](versions/)，每个版本目录内含该版完整源码 `HnsSkin.sma` 与版本说明 `VERSION.md`（更新/更改/修复详情）：
+HnsSkin 历代版本源码已按版本独立归档在 [`versions/`](versions/)，每个版本目录内含该版完整源码与版本说明 `VERSION.md`（更新/更改/修复详情）：
+
+**独立版 HnsSkin（仓库根目录 `HnsSkin.sma`）**
 
 | 版本 | 日期 | 定位 | 归档目录 |
 |------|------|------|---------|
 | **v2.0.0**（当前推荐） | 2026-08-10 | +WPM 第三人称刀皮 | [versions/v2.0.0](versions/v2.0.0/) |
 | v1.1.0 | 2026-08-10 | +USP 皮肤、多项修复 | [versions/v1.1.0](versions/v1.1.0/) |
 | v1.0.0 | 2026-08-06 | 初始稳定版 | [versions/v1.0.0](versions/v1.0.0/) |
+
+**比赛版 HnsMatchSkin（服务器实际使用）**
+
+| 版本 | 定位 | 归档目录 |
+|------|------|---------|
+| v5.0.0 | 玩家+管理员皮肤、M键菜单、发放、换队即时换肤、WPM | [versions/match-skin-v5](versions/match-skin-v5/) |
 
 > 历史版本源码备份于此，便于查阅、对比与回滚。详见 [`versions/README.md`](versions/README.md)。
 

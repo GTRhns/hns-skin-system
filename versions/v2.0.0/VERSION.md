@@ -5,7 +5,9 @@
 - **版本号**：`2.0.0`
 - **发布日期**：2026-08-10
 - **插件标识**：`HnsSkin Skin System`（`#define PLUGIN_VERSION "2.0.0"`）
-- **源码文件**：`HnsSkin.sma`（2524 行）
+- **文件清单**：
+  - `HnsSkin.amxx` — 编译插件（可直接部署）
+  - `HnsSkin.sma` — 完整源码（2524 行）
 - **协议**：GPLv3
 
 ---

@@ -27,6 +27,7 @@
 - [示例图](#示例图)
 - [深入指南 GUIDE](#深入指南-guide)
 - [这是什么](#这是什么)
+- [版本历史归档](#版本历史归档)
 - [项目结构](#项目结构)
 - [工作原理：它是怎么触发的](#工作原理它是怎么触发的)
   - [皮肤系统 HnsSkin.sma](#皮肤系统-hnsskinsma)
@@ -93,11 +94,12 @@ HnsSkin 是一个**独立的皮肤加载/发放系统**。核心插件 `HnsSkin.
 
 ```
 hns-skin-system/
-├── HnsSkin.sma              ← 核心皮肤系统（独立运行）
+├── HnsSkin.sma              ← 核心皮肤系统（独立运行，v2.0.0 当前版）
 ├── player_models.ini        ← 皮肤配置（T / CT / 刀模型库）
 ├── LICENSE                  ← GPLv3 开源协议
 ├── assets/
 │   └── preview.png          ← 预览图
+├── versions/                ← 历史版本源码归档（v1.0.0 / v1.1.0 / v2.0.0）
 ├── compiled/
 │   ├── HnsSkin.amxx            ← 编译产物（含 WPM 集成）
 │   └── addon_weapon_player_model.amxx ← WPM API 依赖插件
@@ -359,6 +361,20 @@ amxx plugins   # 确认四个插件都已加载
 - 插件没加载 → 看 `addons/amxmodx/logs/` 下的错误日志，确认模块是否齐全。
 - 模型闪成原始 → 检查 `player_models.ini` 路径是否大小写一致、模型是否已 `precache`。
 - DLC 无音效 → 确认 ReGameDLL 已装，且音效已 `precache_sound`。
+
+---
+
+## 版本历史归档
+
+HnsSkin 历代版本源码已按版本独立归档在 [`versions/`](versions/)，每个版本目录内含该版完整源码 `HnsSkin.sma` 与版本说明 `VERSION.md`（更新/更改/修复详情）：
+
+| 版本 | 日期 | 定位 | 归档目录 |
+|------|------|------|---------|
+| **v2.0.0**（当前推荐） | 2026-08-10 | +WPM 第三人称刀皮 | [versions/v2.0.0](versions/v2.0.0/) |
+| v1.1.0 | 2026-08-10 | +USP 皮肤、多项修复 | [versions/v1.1.0](versions/v1.1.0/) |
+| v1.0.0 | 2026-08-06 | 初始稳定版 | [versions/v1.0.0](versions/v1.0.0/) |
+
+> 历史版本源码备份于此，便于查阅、对比与回滚。详见 [`versions/README.md`](versions/README.md)。
 
 ---
 

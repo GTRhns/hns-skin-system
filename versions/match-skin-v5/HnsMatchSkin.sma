@@ -19,14 +19,16 @@
 #include <amxmodx>
 #include <fakemeta>
 #include <amxmisc>
+#include <engine>
 #include <reapi>
 // View model will be set via find_weapon_and_set_view()
 #include <nvault>
 #include <hns_matchsystem>
 #include <hamsandwich>
-// WPM API: 第三人称武器/刀皮肤渲染 (需加载 addon_weapon_player_model.amxx)
-#include <api_weapon_player_model>
-// pev_viewmodel is 27, pev_weaponmodel is 14 (fakemeta.inc)
+// 纯标准字段方案: 不依赖 WPM 插件，也不依赖 ReGameDLL 扩展字段
+// 第一人称: 武器实体 pev_viewmodel  (v_knife.mdl)
+// 第三人称: 武器实体 pev_weaponmodel (p_knife.mdl)
+// pev_viewmodel/pev_weaponmodel 均为 CS 引擎原生标准字段 (fakemeta.inc)
 
 // 前向声明
 stock bool:has_skin(const id, const iType, const iSkinIndex);
@@ -121,8 +123,8 @@ new g_iAdminSelectedKnife[MAX_PLAYERS + 1] = {-1, ...};
 new g_iAdminSelectType[MAX_PLAYERS + 1];
 new g_iAdminSelectPage[MAX_PLAYERS + 1];
 
-// WPM 第三人称刀皮开关 cvar 句柄
-new pcvar:g_pWPMEnabled;
+// 刀模型路径数组 g_aKnifeModels 中每个元素为 v_ 模型路径
+// 第三人称显示依赖同目录下的 p_ 模型 (v_knife → p_knife)
 
 // ============================================================
 //  全局变量 - M键菜单
@@ -169,13 +171,12 @@ public plugin_init() {
     // 注册CVAR：标记高级皮肤系统已激活，防止 player_models.inc 冲突
     register_cvar("hns_skin_advanced", "1");
 
-    // WPM 第三人称刀皮渲染开关 (1=开启, 0=关闭回退到传统 pev_weaponmodel)
-    // 需同时加载 addon_weapon_player_model.amxx
-    g_pWPMEnabled = create_cvar("hns_skin_wpm", "1", FCVAR_SERVER);
+    // ★ 注册武器切换事件 — 管理刀皮显示
+    register_event("CurWeapon", "FM_CurWeapon", "be");
 
-    // ★ 注册武器切换事件 — 刀皮肤需要每次切换时重新应用
-    // CSW_KNIFE = 29, 过滤器 "1=29" 表示只在切换到刀时触发
-    register_event("CurWeapon", "FM_CurWeapon", "be", "1=29");
+    // ★ 注册武器部署钩子 — 换手/切武器后引擎会重置模型，部署完成后再重新应用刀皮
+    // Post 钩子确保在 DefaultDeploy 设置默认模型之后执行，避免被覆盖
+    RegisterHam(Ham_Item_Deploy, "weapon_knife", "OnKnifeDeploy_Post", 1);
 
     // 打开 nvault 数据库
     g_iVault = nvault_open("hns_skin_vault");
@@ -244,71 +245,83 @@ public plugin_init() {
 // ============================================================
 //  plugin_end - 清理
 // ============================================================
-// 安全设置玩家刀模型（第一人称 + 第三人称）
-// 第一人称: pev_viewmodel (v_knife.mdl)
-// 第三人称: pev_weaponmodel (p_knife.mdl) + WPM API 独立实体跟随
+// 安全设置玩家刀模型 — 标准字段方案 (最兼容)
+// 第一人称: 武器实体 pev_viewmodel (v_knife.mdl) - CS标准字段
+// 第三人称: 武器实体 pev_weaponmodel (p_knife.mdl) - CS标准字段
+// 说明: 使用引擎原生标准字段，所有服务器都生效，不依赖 ReGameDLL 扩展或 WPM
+// 说明: 有 p_ 模型就显示，没有就默认
 stock set_player_knife_view(const id, const szPath[]) {
     if (!is_user_alive(id) || !is_user_connected(id)) {
         return;
     }
-    
-    // 生成第三人称模型路径: v_knife → p_knife
+
+    // 生成第三人称 p_ 路径
     new szPathP[MAX_MODEL_NAME];
-    copy(szPathP, charsmax(szPathP), szPath);
-    new iPos = containi(szPathP, "v_knife");
-    if (iPos >= 0) {
-        szPathP[iPos] = 'p';  // v_knife → p_knife
-    }
-    
-    // 遍历所有实体，找到属于该玩家的刀武器
-    new iEnt = engfunc(EngFunc_FindEntityByString, -1, "classname", "weapon_knife");
-    while (iEnt) {
-        new iOwner = pev(iEnt, pev_owner);
-        if (iOwner == id) {
-            // 第一人称视角模型 (自己看到的)
-            set_pev(iEnt, pev_viewmodel, szPath);
-            // 第三人称视角模型 (别人看到的)
-            set_pev(iEnt, pev_weaponmodel, szPathP);
-            break;
-        }
-        iEnt = engfunc(EngFunc_FindEntityByString, iEnt, "classname", "weapon_knife");
+    new bool:bHasThird = bool:get_knife_thirdperson_path(szPath, szPathP, charsmax(szPathP));
+
+    // 找到该玩家的刀武器实体
+    new iEnt = find_ent_by_owner(-1, "weapon_knife", id);
+    if (!iEnt) {
+        return;
     }
 
-    // WPM API: 用独立 follow 实体渲染第三人称刀皮（更可靠，不受自定义玩家模型影响）
-    // cvar hns_skin_wpm 默认开启，可手动关闭回退到传统方式
-    if (get_pcvar_num(g_pWPMEnabled)) {
-        api_wpn_player_model_set(id, szPathP, 0, 0, 0, { 0.0, 0.0 });
+    // 第一人称视角模型 (自己看到的) - 标准字段 pev_viewmodel
+    set_pev(iEnt, pev_viewmodel, szPath);
+
+    // 第三人称视角模型 (别人看到的) - 标准字段 pev_weaponmodel
+    // 仅当 p_ 模型存在时设置，否则保持默认
+    if (bHasThird && file_exists(szPathP)) {
+        set_pev(iEnt, pev_weaponmodel, szPathP);
     }
 }
 
-// 武器切换时重新应用刀皮肤
+// 武器切换时管理刀皮显示
+// 切到刀 → 重新应用刀皮; 切到其他武器 → 保持该武器默认渲染 (不触碰任何玩家实体模型字段)
 public FM_CurWeapon(id) {
     if (!is_user_alive(id) || !is_user_connected(id))
         return FMRES_IGNORED;
     
     new iWeapon = get_user_weapon(id);
-    // 仅在切换到刀时重新应用
     if (iWeapon == CSW_KNIFE) {
-        // 优先管理员刀皮
-        if (is_user_admin(id) && g_iAdminSelectedKnife[id] >= 0) {
-            new iSize = ArraySize(g_aAdminKnifeModels);
-            if (g_iAdminSelectedKnife[id] < iSize) {
-                new szPath[MAX_MODEL_NAME];
-                ArrayGetString(g_aAdminKnifeModels, g_iAdminSelectedKnife[id], szPath, charsmax(szPath));
-                set_player_knife_view(id, szPath);
-            }
-        }
-        else if (g_iSelectedKnife[id] >= 0) {
-            new iSize = ArraySize(g_aKnifeModels);
-            if (g_iSelectedKnife[id] < iSize) {
-                new szPath[MAX_MODEL_NAME];
-                ArrayGetString(g_aKnifeModels, g_iSelectedKnife[id], szPath, charsmax(szPath));
-                set_player_knife_view(id, szPath);
-            }
-        }
+        // 切到刀: 重新应用刀皮 (武器实体 pev_viewmodel / pev_weaponmodel)
+        apply_knife_skin(id);
     }
     
     return FMRES_IGNORED;
+}
+
+// 武器部署完成钩子 (Post) — 换手/切武器后模型被重置，这里重新应用
+public OnKnifeDeploy_Post(const iWeapon) {
+    // 获取持有者 (使用 ReGameDLL get_member，更安全)
+    new id = get_member(iWeapon, m_pPlayer);
+    if (!is_user_alive(id) || !is_user_connected(id))
+        return;
+    // 延迟一帧应用，确保引擎完成模型设置后再覆盖
+    set_task(0.05, "apply_knife_skin", id);
+}
+
+// 应用当前玩家选择的刀皮肤 (管理员优先 > 普通皮肤)
+stock apply_knife_skin(const id) {
+    if (!is_user_alive(id) || !is_user_connected(id))
+        return;
+
+    // 优先管理员刀皮
+    if (is_user_admin(id) && g_iAdminSelectedKnife[id] >= 0) {
+        new iSize = ArraySize(g_aAdminKnifeModels);
+        if (g_iAdminSelectedKnife[id] < iSize) {
+            new szPath[MAX_MODEL_NAME];
+            ArrayGetString(g_aAdminKnifeModels, g_iAdminSelectedKnife[id], szPath, charsmax(szPath));
+            set_player_knife_view(id, szPath);
+        }
+    }
+    else if (g_iSelectedKnife[id] >= 0) {
+        new iSize = ArraySize(g_aKnifeModels);
+        if (g_iSelectedKnife[id] < iSize) {
+            new szPath[MAX_MODEL_NAME];
+            ArrayGetString(g_aKnifeModels, g_iSelectedKnife[id], szPath, charsmax(szPath));
+            set_player_knife_view(id, szPath);
+        }
+    }
 }
 
 public plugin_end() {
@@ -370,11 +383,6 @@ public client_putinserver(id) {
 public client_disconnected(id) {
     if (is_user_bot(id) || is_user_hltv(id)) {
         return;
-    }
-
-    // 清理 WPM 第三人称刀皮实体
-    if (get_pcvar_num(g_pWPMEnabled)) {
-        api_wpn_player_model_remove(id);
     }
 
     save_player_skins(id);
@@ -682,11 +690,12 @@ stock precache_all_models() {
         precache_model(szModel);
     }
 
-    // 普通刀模型
+    // 普通刀模型 (v_ + 生成的 p_ 双版本都要预加载，否则 WPM SetModel 会崩服)
     iSize = ArraySize(g_aKnifeModels);
     for (i = 0; i < iSize; i++) {
         ArrayGetString(g_aKnifeModels, i, szModel, charsmax(szModel));
         precache_model(szModel);
+        precache_knife_pair(szModel);
     }
 
     // 管理员T模型
@@ -708,9 +717,41 @@ stock precache_all_models() {
     for (i = 0; i < iSize; i++) {
         ArrayGetString(g_aAdminKnifeModels, i, szModel, charsmax(szModel));
         precache_model(szModel);
+        precache_knife_pair(szModel);
     }
 
     log_amx("[SkinSystem] 所有模型预缓存完成");
+}
+
+// 预加载刀模型对 (v_ 第一人称 + 生成的 p_ 第三人称)
+// GoldSrc 强制要求 SetModel 的模型必须已 precache，否则直接崩服
+stock precache_knife_pair(const szModel[]) {
+    // 预加载 v_ 版本 (第一人称)
+    precache_model(szModel);
+
+    // 生成 p_ 版本路径 (第三人称): v_knife → p_knife
+    new szPathP[MAX_MODEL_NAME];
+    copy(szPathP, charsmax(szPathP), szModel);
+    new iPos = containi(szPathP, "v_knife");
+    if (iPos >= 0) {
+        szPathP[iPos] = 'p';
+        // 仅当 p_ 模型文件真实存在时才预加载，避免 SetModel 崩服
+        if (file_exists(szPathP)) {
+            precache_model(szPathP);
+        }
+    }
+}
+
+// 生成刀模型的第三人称 p_ 路径 (v_knife → p_knife)
+// 返回的 p_ 路径仅在文件存在时有效
+stock get_knife_thirdperson_path(const szPath[], output[], const iLen) {
+    copy(output, iLen, szPath);
+    new iPos = containi(output, "v_knife");
+    if (iPos >= 0) {
+        output[iPos] = 'p';
+        return 1;  // 成功生成 p_ 路径
+    }
+    return 0;  // 非标准刀模型路径，无法生成
 }
 
 // ============================================================

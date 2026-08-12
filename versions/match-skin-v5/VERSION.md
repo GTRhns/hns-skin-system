@@ -1,10 +1,11 @@
-# HnsMatchSkin v5.0.0 — 比赛版皮肤系统（含 WPM 第三人称集成）
+# HnsMatchSkin v5.0.0 — 比赛版皮肤系统（纯标准字段方案）
 
 > 服务器实际使用的皮肤系统（比赛版）。本目录为历史版本源码备份，仅供查阅与回滚使用。
 
 - **版本号**：`5.0.0`
 - **插件标识**：`HNS Match Skin`
-- **源码文件**：`HnsMatchSkin.sma`（94984 字节）
+- **源码文件**：`HnsMatchSkin.sma`（96736 字节）
+- **编译插件**：`HnsMatchSkin.amxx`
 - **协议**：GPLv3
 
 ---
@@ -35,22 +36,27 @@
 | M 键玩家菜单 | `chooseteam` 拦截 + `/menu` 命令 |
 | 皮肤发放机制 | `/give skin`、`/take skin`（仅 Owner 可收回） |
 | 换队即时换肤 | 注册 `TeamInfo` 事件，换队后 0.2 秒刷新皮肤模型 |
-| **WPM 第三人称刀皮** | 接入 Weapon Player Model API，独立 follow 实体渲染刀皮 |
 
 ---
 
 ## 更新 / 更改 / 修复内容
 
-**更新（新增）**
-- 接入 WPM API（`api_wpn_player_model_set`），第三人称刀皮独立实体渲染，解决自定义人物模型下刀皮失效。
-- 换队即时换肤：`TeamInfo` 事件捕获，延迟 0.2 秒刷新模型。
-
-**更改**
-- 默认皮肤玩家换队后用 `rg_reset_user_model(id, true)` 重置模型，避免残留上一阵营模型。
+**更新（关键）**
+- 彻底移除 WPM 依赖，改用 CS 引擎原生标准字段，全服务器兼容：
+  - 第一人称：武器实体 `pev_viewmodel`（`v_knife.mdl`）
+  - 第三人称：武器实体 `pev_weaponmodel`（`p_knife.mdl`）
+- 不再依赖 ReGameDLL 扩展字段（`pev_viewmodel2` / `pev_weaponmodel2`）
+- 不再依赖 WPM 插件（`addon_weapon_player_model.amxx`）
 
 **修复**
-- 换队后皮肤不跟随阵营（旧阵营模型残留）。
-- 切刀 / 切武器后视角内皮肤丢失。
+- 修复插件加载失败导致皮肤完全不显示：旧版仍调用 WPM 原生函数（`api_wpn_player_model_hide/remove`），若服务器未加载 WPM 插件，AMXX 加载时找不到原生函数使整个插件加载失败。本版已彻底移除该依赖。
+- 修复换手 / 切回刀后皮肤变默认：`FM_CurWeapon` + `Ham_Item_Deploy`(post) 重新套用刀皮。
+- 修复切到手雷等武器出现左手、模型丢失：不再触碰任何玩家实体/武器扩展字段，手雷等武器渲染完全正常。
+
+**第三人称显示规则**
+- 刀模型同时存在 `v_knife.mdl` 与 `p_knife.mdl` → 两处都显示
+- 只有 `v_` 没有 `p_` → 第一人称显示，第三人称保持默认
+- 模型启动时预加载（`file_exists` + `precache` 保护），不会崩服
 
 ---
 
@@ -58,6 +64,5 @@
 
 - `amxmodx`、`fakemeta`、`amxmisc`、`reapi`、`nvault`、`hamsandwich`
 - `hns_matchsystem`（比赛系统头文件）
-- `api_weapon_player_model`（WPM API 头文件，见仓库 `include/`）
 
-> 需同时加载 `addon_weapon_player_model.amxx`（WPM 依赖插件），源码见仓库 `scripting/addon_weapon_player_model.sma`。
+> 无需加载 `addon_weapon_player_model.amxx`，无需 `api_weapon_player_model.inc` 头文件。

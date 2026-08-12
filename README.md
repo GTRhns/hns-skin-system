@@ -8,7 +8,7 @@
 
 [![AMX Mod X](https://img.shields.io/badge/AMX_Mod_X-1.10+-blue)]()
 [![ReGameDLL](https://img.shields.io/badge/ReGameDLL-5.x-orange)]()
-[![Version](https://img.shields.io/badge/Version-2.0.0-green)]()
+[![Version](https://img.shields.io/badge/Version-2.01-green)]()
 [![DLC](https://img.shields.io/badge/DLC-Sound_%2B_Accessory-9cf)]()
 [![License](https://img.shields.io/badge/License-GPLv3-success)]()
 
@@ -94,21 +94,21 @@ HnsSkin 是一个**独立的皮肤加载/发放系统**。核心插件 `HnsSkin.
 
 ```
 hns-skin-system/
-├── HnsSkin.sma              ← 核心皮肤系统（独立运行，v2.0.0 当前版）
+├── HnsSkin.sma              ← 核心皮肤系统（独立运行，v2.01 当前版）
 ├── player_models.ini        ← 皮肤配置（T / CT / 刀模型库）
 ├── LICENSE                  ← GPLv3 开源协议
 ├── assets/
 │   └── preview.png          ← 预览图
-├── versions/                ← 历史版本源码归档（独立版 v1.0.0/v1.1.0/v2.0.0 + 比赛版 v5.0.0）
+├── versions/                ← 历史版本源码归档（独立版 v1.0.0/v1.1.0/v2.0.0/v2.01 + 比赛版 v5.0.0）
 ├── scripting/
-│   └── addon_weapon_player_model.sma ← WPM API 依赖插件源码
+│   └── addon_weapon_player_model.sma ← WPM API 依赖插件源码（v2.01 不再需要）
 ├── compiled/
-│   ├── HnsSkin.amxx            ← 编译产物（含 WPM 集成）
-│   └── addon_weapon_player_model.amxx ← WPM API 依赖插件
+│   ├── HnsSkin.amxx            ← 编译产物（v2.01，纯标准字段方案）
+│   └── addon_weapon_player_model.amxx ← WPM API 依赖插件（v2.01 不再需要）
 ├── include/
-│   └── api_weapon_player_model.inc   ← WPM API 头文件
+│   └── api_weapon_player_model.inc   ← WPM API 头文件（v2.01 不再需要）
 ├── models/
-│   └── p_null.mdl            ← WPM 附件移动占位模型
+│   └── p_null.mdl            ← WPM 附件移动占位模型（v2.01 不再需要）
 └── dlc/
     ├── HnsDlcSkin.sma       ← DLC：音效扩展（死亡音效 / 刀击音效）
     ├── HnsDlcAccessory.sma  ← DLC：饰品扩展（帽子 / 翅膀 / 面部）
@@ -139,16 +139,16 @@ hns-skin-system/
    │
    └─→ 玩家选定后，写入 nvault 并立即应用：
          - T/CT 皮肤 → 调用引擎 SetModel 换身体模型
-         - 刀皮肤    → 同时设置 pev_viewmodel2（自己看）
-                        pev_weaponmodel2（别人看）
-                        + WPM follow 实体（更可靠的第三人称渲染）
+         - 刀皮肤    → 武器实体 pev_viewmodel（自己看 v_knife.mdl）
+                        + pev_weaponmodel（别人看 p_knife.mdl）
+                        （CS 引擎原生标准字段，全服务器兼容，不依赖 WPM）
 ```
 
 **关键触发点：**
 
 1. **命令触发**：`register_clcmd` 拦截 `/skin`、`/skin_t`、`/skin_ct`、`/skin_knife`。
 2. **重生触发**：用 ReGameDLL 的 `RegisterHookChain(RG_CBasePlayer_Spawn, ...)`，玩家每次重生自动重新套用已选皮肤，避免换图/死亡后丢失。
-3. **切刀触发**：拦截 `CurWeapon` 消息，切到刀时自动重新应用刀皮肤，防止视角内模型丢失。
+3. **切刀触发**：拦截 `CurWeapon` 消息 + `Ham_Item_Deploy`(post)，切到刀时自动重新应用刀皮肤，防止视角内模型丢失。
 4. **数据持久化**：所有选择写进 `nvault`，重连、重启服务器都不丢。
 
 ### DLC 音效 HnsDlcSkin.sma
@@ -194,7 +194,7 @@ hns-skin-system/
 |----|------|
 | **语言** | Pawn（AMX Mod X 脚本语言，C 风格） |
 | **运行环境** | Counter-Strike 1.6 + AMX Mod X 1.8.3+ |
-| **依赖模块** | `amxmodx`、`fakemeta`、`amxmisc`、`reapi`、`nvault`、`hamsandwich`、`engine`、`api_weapon_player_model`（WPM） |
+| **依赖模块** | `amxmodx`、`fakemeta`、`amxmisc`、`reapi`、`nvault`、`hamsandwich`、`engine`（v2.01 起不再依赖 WPM） |
 | **编译工具** | `amxxpc`（AMX Mod X 自带编译器） |
 | **数据存储** | `nvault`（AMXX 内置持久化键值库） |
 
@@ -218,8 +218,6 @@ amxxpc dlc/HnsDlcAccessory.sma
 cp *.amxx <cstrike>/addons/amxmodx/plugins/
 
 # 3. 在 plugins.ini 里启用
-# ⚠️ WPM 依赖插件必须放在 HnsSkin.amxx 之前加载
-echo "addon_weapon_player_model.amxx" >> <cstrike>/addons/amxmodx/configs/plugins.ini
 echo "HnsSkin.amxx" >> <cstrike>/addons/amxmodx/configs/plugins.ini
 echo "HnsDlcSkin.amxx" >> <cstrike>/addons/amxmodx/configs/plugins.ini
 echo "HnsDlcAccessory.amxx" >> <cstrike>/addons/amxmodx/configs/plugins.ini
@@ -231,19 +229,15 @@ mkdir -p <cstrike>/addons/amxmodx/configs/mixsystem/
 cp player_models.ini                <cstrike>/addons/amxmodx/configs/mixsystem/
 cp dlc/configs/dlc_skin.ini         <cstrike>/addons/amxmodx/configs/mixsystem/
 cp dlc/configs/dlc_accessory.ini    <cstrike>/addons/amxmodx/configs/mixsystem/
-
-# 5. 复制 WPM 依赖
-cp compiled/addon_weapon_player_model.amxx <cstrike>/addons/amxmodx/plugins/
-cp models/p_null.mdl                <cstrike>/models/
 ```
 
 ```bash
-# 6. 重启服务器或换图生效
-amxx plugins   # 确认四个插件都已加载
+# 5. 重启服务器或换图生效
+amxx plugins   # 确认插件都已加载
 ```
 
 > **注意**：`HnsDlcSkin.sma` 和 `HnsDlcAccessory.sma` 需要 ReGameDLL。若服务器未装，可只部署 `HnsSkin.amxx`。
-> **注意**：`addon_weapon_player_model.amxx` 是第三人称刀皮的硬依赖，未加载时 HnsSkin 会因找不到 native 而无法启动，务必安装。
+> **v2.01 起**：核心 `HnsSkin.amxx` 不再依赖 WPM 插件，直接部署即可，无需 `addon_weapon_player_model.amxx`。
 
 ---
 
@@ -374,7 +368,8 @@ HnsSkin 历代版本源码已按版本独立归档在 [`versions/`](versions/)�
 
 | 版本 | 日期 | 定位 | 归档目录 |
 |------|------|------|---------|
-| **v2.0.0**（当前推荐） | 2026-08-10 | +WPM 第三人称刀皮 | [versions/v2.0.0](versions/v2.0.0/) |
+| **v2.01**（当前推荐） | 2026-08-12 | 纯标准字段方案，移除 WPM 依赖 | [versions/v2.01](versions/v2.01/) |
+| v2.0.0 | 2026-08-10 | +WPM 第三人称刀皮（依赖 WPM） | [versions/v2.0.0](versions/v2.0.0/) |
 | v1.1.0 | 2026-08-10 | +USP 皮肤、多项修复 | [versions/v1.1.0](versions/v1.1.0/) |
 | v1.0.0 | 2026-08-06 | 初始稳定版 | [versions/v1.0.0](versions/v1.0.0/) |
 
@@ -389,6 +384,30 @@ HnsSkin 历代版本源码已按版本独立归档在 [`versions/`](versions/)�
 ---
 
 ## 版本更新日志
+
+### v2.01（2026-08-12）— 纯标准字段方案，移除 WPM 依赖
+
+**🆕 更新内容（关键）**
+
+| 更新 | 说明 |
+|------|------|
+| 彻底移除 WPM 依赖 | 不再调用任何 WPM 原生函数（`api_wpn_player_model_*`），不再依赖 `addon_weapon_player_model.amxx` 与 `api_weapon_player_model.inc` |
+| 改用 CS 引擎原生标准字段 | 刀/手枪皮肤直接写到武器实体上，全服务器兼容 |
+| 第一人称刀皮 | 武器实体 `pev_viewmodel`（`v_knife.mdl`） |
+| 第三人称刀皮 | 武器实体 `pev_weaponmodel`（`p_knife.mdl`），仅当 `p_` 模型存在时设置 |
+
+**🔧 修复内容**
+
+| 修复 | 说明 |
+|------|------|
+| 插件加载失败导致皮肤完全不显示 | 旧版调用 WPM 原生函数，若服务器未加载 WPM 插件，AMXX 加载时找不到原生函数使整个插件加载失败；本版彻底移除该依赖 |
+| 换手/切回刀后皮肤变默认 | `Ham_Item_Deploy`(post) + `CurWeapon` 消息重新套用刀皮 |
+| 切到手雷等武器出现左手、模型丢失 | 不再触碰玩家实体/武器扩展字段，手雷等武器渲染完全正常 |
+
+**⚠️ 升级提示**
+
+- 仅替换 `HnsSkin.amxx` 即可，无需再安装 `addon_weapon_player_model.amxx`。
+- 已有玩家皮肤数据（nvault）不受影响，自动保留。
 
 ### v2.0.0（2026-08-10）— 第三人称刀皮肤 WPM 增强
 

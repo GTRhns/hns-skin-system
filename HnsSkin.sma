@@ -68,6 +68,21 @@ stock give_skin(const id, const iType, const iSkinIndex);
 #define MENU_GIVE_SKIN       8009
 
 // ============================================================
+//  官方 AMXX 认证管理员判定（users.ini）
+//  只认 users.ini 官方认证数据库里的管理员，可发放/收回皮肤。
+//  不信任 get_user_flags（可被其他插件 set_user_flags 运行时越权），
+//  不再使用 nvault 自定义权限等级（skinsys_perm_level）。
+// ============================================================
+#define MAX_OFFICIAL_ADMINS     64
+#define MAX_AUTH_LEN            48
+#define MAX_FLAG_LEN            32
+
+new g_szOfficialAuth[MAX_OFFICIAL_ADMINS][MAX_AUTH_LEN];
+new g_iOfficialAccess[MAX_OFFICIAL_ADMINS];
+new g_iOfficialAdminCount;
+new bool:g_bOfficialLoaded;
+
+// ============================================================
 //  全局变量 - 普通玩家皮肤
 // ============================================================
 new Array:g_aTModels;          // T模型路径
@@ -154,6 +169,9 @@ public plugin_init() {
 
     // 打开 nvault 数据库
     g_iVault = nvault_open("skinsys_skin_vault");
+
+    // ★ 加载 users.ini 官方管理员认证库（皮肤发放/收回仅认官方认证）
+    load_official_admins();
 
     // === 命令注册 ===
     // 统一主菜单
@@ -1297,10 +1315,9 @@ public cmdMenu(const id) {
 public cmdGiveAllSkins(const id) {
     if (!is_user_connected(id)) return PLUGIN_CONTINUE;
 
-    // 权限检查: Admin(2)及以上，或 AMXX users.ini 管理员
-    new iPermLevel = get_user_perm_level(id);
-    if (iPermLevel < PERM_ADMIN && !(get_user_flags(id) & ADMIN_IMMUNITY)) {
-        client_print(id, print_chat, "[SkinSystem] 只有管理员及以上才能发放皮肤");
+    // 权限检查: 仅官方认证管理员（users.ini）可发放皮肤
+    if (!is_official_admin(id)) {
+        client_print(id, print_chat, "[SkinSystem] 只有官方认证管理员才能发放皮肤");
         return PLUGIN_HANDLED;
     }
 
@@ -1415,9 +1432,8 @@ public cmdGiveAllSkins(const id) {
 public cmdGiveSkinMenuStart(const id) {
     if (!is_user_connected(id)) return PLUGIN_CONTINUE;
     
-    new iPermLevel = get_user_perm_level(id);
-    if (iPermLevel < PERM_ADMIN && !(get_user_flags(id) & ADMIN_IMMUNITY)) {
-        client_print(id, print_chat, "[SkinSystem] 只有管理员及以上才能发放皮肤");
+    if (!is_official_admin(id)) {
+        client_print(id, print_chat, "[SkinSystem] 只有官方认证管理员才能发放皮肤");
         return PLUGIN_HANDLED;
     }
     
@@ -1802,9 +1818,8 @@ public handleGiveSelectSkin(const id, const key) {
 public cmdGiveSkinCmd(const id) {
     if (!is_user_connected(id)) return PLUGIN_CONTINUE;
     
-    new iPermLevel = get_user_perm_level(id);
-    if (iPermLevel < PERM_ADMIN && !(get_user_flags(id) & ADMIN_IMMUNITY)) {
-        client_print(id, print_chat, "[SkinSystem] 只有管理员及以上才能发放皮肤");
+    if (!is_official_admin(id)) {
+        client_print(id, print_chat, "[SkinSystem] 只有官方认证管理员才能发放皮肤");
         return PLUGIN_HANDLED;
     }
     
@@ -2516,6 +2531,111 @@ stock find_skin_index_by_name(const iType, const szName[]) {
     }
 
     return -1;
+}
+
+// ============================================================
+//  官方 AMXX 认证管理员判定（users.ini）
+//  只认 users.ini 官方认证数据库里的管理员，可发放/收回皮肤。
+//  不信任 get_user_flags（可被其他插件 set_user_flags 运行时越权）。
+// ============================================================
+
+// 加载 users.ini 官方管理员列表
+stock load_official_admins() {
+    if (g_bOfficialLoaded) {
+        return;
+    }
+    g_bOfficialLoaded = true;
+    g_iOfficialAdminCount = 0;
+
+    new szConfigsDir[256];
+    get_localinfo("amxx_configsdir", szConfigsDir, charsmax(szConfigsDir));
+
+    new szPath[320];
+    formatex(szPath, charsmax(szPath), "%s/users.ini", szConfigsDir);
+
+    if (!file_exists(szPath)) {
+        log_amx("[SkinSystem] 未找到 users.ini (%s)，皮肤发放/收回已关闭", szPath);
+        return;
+    }
+
+    new szLine[192];
+    new iFile = fopen(szPath, "rt");
+    if (!iFile) {
+        return;
+    }
+
+    while (g_iOfficialAdminCount < MAX_OFFICIAL_ADMINS && fgets(iFile, szLine, charsmax(szLine))) {
+        trim(szLine);
+        // 跳过空行与注释
+        if (szLine[0] == EOS || szLine[0] == ';' || (szLine[0] == '/' && szLine[1] == '/')) {
+            continue;
+        }
+
+        // 格式: "auth" "password" "access flags" "account flags"
+        new szAuth[MAX_AUTH_LEN], szPass[MAX_AUTH_LEN], szAccess[MAX_FLAG_LEN], szAccount[MAX_FLAG_LEN];
+        parse(szLine, szAuth, charsmax(szAuth), szPass, charsmax(szPass), szAccess, charsmax(szAccess), szAccount, charsmax(szAccount));
+
+        remove_quotes(szAuth);
+        remove_quotes(szPass);
+        remove_quotes(szAccess);
+        remove_quotes(szAccount);
+
+        if (szAuth[0] == EOS) {
+            continue;
+        }
+
+        // 只关心有 access 权限的管理员条目（无权限即非管理员）
+        if (szAccess[0] == EOS) {
+            continue;
+        }
+
+        copy(g_szOfficialAuth[g_iOfficialAdminCount], MAX_AUTH_LEN - 1, szAuth);
+        g_iOfficialAccess[g_iOfficialAdminCount] = read_flags(szAccess);
+        g_iOfficialAdminCount++;
+    }
+    fclose(iFile);
+
+    log_amx("[SkinSystem] 已加载 %d 个官方认证管理员", g_iOfficialAdminCount);
+}
+
+// 认证字符串匹配（支持 users.ini 的 * 通配符，如 STEAM_0:* / 127.0.0.*）
+stock bool:auth_matches(const szIdentity[], const szPattern[]) {
+    new iStar = contain(szPattern, "*");
+    if (iStar >= 0) {
+        // 前缀匹配: 逐个比较 * 之前的字符
+        for (new i = 0; i < iStar; i++) {
+            if (szIdentity[i] == EOS || szIdentity[i] != szPattern[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return equal(szIdentity, szPattern);
+}
+
+// 判断玩家是否为官方 AMXX 认证管理员（users.ini 数据库）
+stock bool:is_official_admin(const id) {
+    if (!g_bOfficialLoaded) {
+        load_official_admins();
+    }
+    if (g_iOfficialAdminCount <= 0) {
+        return false;
+    }
+
+    new szAuth[MAX_AUTHID_LENGTH];
+    get_user_authid(id, szAuth, charsmax(szAuth));
+
+    // 盗版玩家（LAN）用 IP 匹配
+    if (equal(szAuth, "STEAM_ID_LAN") || equal(szAuth, "VALVE_ID_LAN")) {
+        get_user_ip(id, szAuth, charsmax(szAuth), 1);
+    }
+
+    for (new i = 0; i < g_iOfficialAdminCount; i++) {
+        if (auth_matches(szAuth, g_szOfficialAuth[i])) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // 获取玩家权限等级（通过PDS读取）

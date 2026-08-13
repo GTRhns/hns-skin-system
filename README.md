@@ -1,23 +1,22 @@
 <div align="center">
 
-<img src="assets/preview.png" alt="HnsSkin" width="320">
+<img src="assets/linna_avatar.png" alt="Linna" width="300">
 
 <br>
 
-# HnsSkin — CS 1.6 独立皮肤系统（含 DLC 扩展）
+# HnsSkin+IC — CS 1.6 皮肤 × IC 积分融合版
 
 [![AMX Mod X](https://img.shields.io/badge/AMX_Mod_X-1.10+-blue)]()
 [![ReGameDLL](https://img.shields.io/badge/ReGameDLL-5.x-orange)]()
-[![Version](https://img.shields.io/badge/Version-2.01-green)]()
-[![DLC](https://img.shields.io/badge/DLC-Sound_%2B_Accessory-9cf)]()
+[![Version](https://img.shields.io/badge/Version-3.0.0-green)]()
+[![DLC](https://img.shields.io/badge/DLC-IC_Point_%2B_Accessory-9cf)]()
 [![License](https://img.shields.io/badge/License-GPLv3-success)]()
 
-> 一款**完全独立**的 Counter-Strike 1.6 AMX Mod X 皮肤插件。
-> 不依赖任何比赛系统，即插即用；同时提供 DLC 扩展（音效、饰品配件）。
+> **一个插件，同时搞定「皮肤系统」和「IC 积分系统」。**
+> 融合了皮肤系统的多类型皮肤选择 / 管理员发放，与 IC 点系统的积分累计 / 兑换 / 对外接口，
+> 取各自长处合二为一，即插即用、零额外依赖。
 >
-> **维护者 / 联系人：LINNA**
->
-> Art by Linna
+> **维护者 / 联系人：LINNA** · Art by Linna
 
 </div>
 
@@ -26,6 +25,7 @@
 
 - [示例图](#示例图)
 - [深入指南 GUIDE](#深入指南-guide)
+- [融合版使用教程](#融合版使用教程)
 - [IC 点系统（DLC）与对接教程](#ic-点系统dlc与对接教程)
 - [这是什么](#这是什么)
 - [版本历史归档](#版本历史归档)
@@ -69,6 +69,23 @@
 详见 [《GUIDE.md》](GUIDE.md)。
 
 ---
+## 融合版使用教程
+
+**v3.0.0 起，皮肤系统与 IC 点系统已融合为单个插件 `HnsSkin.amxx`**：一个插件同时搞定皮肤选择 / 管理员发放 / IC 积分累计 / 积分兑换 / 对外接口，皮肤与积分共用一份存档，`/skin` 主菜单直接显示并兑换积分。
+
+> 📖 从"第一步下载什么"到"比赛系统自动发分"，每一步都有讲解，零基础也能照做：
+> 👉 [《融合版使用教程》](docs/融合版使用教程.md)
+
+**游戏内快速上手：**
+
+| 功能 | 方式 |
+|------|------|
+| 打开皮肤主菜单（含 IC 兑换） | 按 **Y** 输入 `/skin` |
+| 打开 IC 菜单 | 按 **N 键** 或输入 `/ic` |
+| 管理员给予 IC 点 | `/givetic <玩家名\|@ALL> <数量>`（需 admin） |
+| 积分兑换皮肤 | 人物 500 分 / 刀 300 分（CVAR 可配置） |
+
+---
 ## IC 点系统（DLC）与对接教程
 
 IC 点系统 `HnsICPointMenu` 是皮肤系统的一个 **DLC 扩展**，也是**完全独立**的积分系统：
@@ -92,7 +109,10 @@ IC 点系统 `HnsICPointMenu` 是皮肤系统的一个 **DLC 扩展**，也是**
 
 ## 这是什么
 
-HnsSkin 是一个**独立的皮肤加载/发放系统**。核心插件 `HnsSkin.sma` 只负责一件事：**让玩家能用上自定义的 T / CT / 刀皮肤**，并通过 `nvault` 永久记住每个玩家拥有哪些皮肤。
+HnsSkin+IC 是一个**独立的皮肤加载 / 发放 + IC 积分系统**（v3.0.0 融合版）。核心插件 `HnsSkin.sma` 负责两件事：
+
+1. **让玩家能用上自定义的 T / CT / 刀 / USP 皮肤**，并通过 `nvault` 永久记住每个玩家拥有哪些皮肤。
+2. **IC 积分体系**：打比赛 / 活动获得积分，用积分解锁皮肤，对外提供 `ic_add_points` / `ic_get_points` 接口供比赛系统对接。
 
 它被设计成**完全独立**的插件：
 
@@ -101,11 +121,11 @@ HnsSkin 是一个**独立的皮肤加载/发放系统**。核心插件 `HnsSkin.
 - 关闭比赛系统它照样工作
 - 放到任何 CS1.6 + AMX Mod X 服务器都能跑
 
-在它之上，`dlc/` 目录下还有两个**可选扩展**，组成一个完整的"皮肤 + 音效 + 饰品"生态：
+在它之上，`dlc/` 目录下还有**可选扩展**，组成一个完整的"皮肤 + 音效 + 饰品"生态：
 
 | 扩展 | 功能 | 是否必须 |
 |------|------|----------|
-| `HnsSkin.sma` | T / CT / 刀皮肤加载与发放 | 必须 |
+| `HnsSkin.sma` | 皮肤 + IC 积分（融合版 v3.0.0） | 必须 |
 | `HnsDlcSkin.sma` | 按皮肤模型替换死亡音效、刀击音效 | 可选 |
 | `HnsDlcAccessory.sma` | 头部 / 背部 / 面部饰品（帽子、翅膀等） | 可选 |
 
@@ -115,21 +135,22 @@ HnsSkin 是一个**独立的皮肤加载/发放系统**。核心插件 `HnsSkin.
 
 ```
 hns-skin-system/
-├── HnsSkin.sma              ← 核心皮肤系统（独立运行，v2.01 当前版）
-├── player_models.ini        ← 皮肤配置（T / CT / 刀模型库）
+├── HnsSkin.sma              ← 核心插件（融合版 v3.0.0：皮肤 + IC 积分）
+├── player_models.ini        ← 皮肤配置（T / CT / 刀 / USP 模型库）
 ├── LICENSE                  ← GPLv3 开源协议
 ├── assets/
+│   ├── linna_avatar.png     ← 封面形象图
 │   └── preview.png          ← 预览图
 ├── versions/                ← 历史版本源码归档（独立版 v1.0.0/v1.1.0/v2.0.0/v2.01 + 比赛版 v5.0.0）
 ├── scripting/
-│   └── addon_weapon_player_model.sma ← WPM API 依赖插件源码（v2.01 不再需要）
+│   └── addon_weapon_player_model.sma ← WPM API 依赖插件源码（v2.01 起不再需要）
 ├── compiled/
-│   ├── HnsSkin.amxx            ← 编译产物（v2.01，纯标准字段方案）
-│   └── addon_weapon_player_model.amxx ← WPM API 依赖插件（v2.01 不再需要）
+│   └── HnsSkin.amxx            ← 融合版编译产物（v3.0.0）
 ├── include/
-│   └── api_weapon_player_model.inc   ← WPM API 头文件（v2.01 不再需要）
+│   ├── ic_points.inc           ← IC 点对外接口头文件（供比赛系统对接）
+│   └── api_weapon_player_model.inc   ← WPM API 头文件（v2.01 起不再需要）
 ├── models/
-│   └── p_null.mdl            ← WPM 附件移动占位模型（v2.01 不再需要）
+│   └── p_null.mdl            ← WPM 附件移动占位模型（v2.01 起不再需要）
 └── dlc/
     ├── HnsDlcSkin.sma       ← DLC：音效扩展（死亡音效 / 刀击音效）
     ├── HnsDlcAccessory.sma  ← DLC：饰品扩展（帽子 / 翅膀 / 面部）
@@ -389,7 +410,8 @@ HnsSkin 历代版本源码已按版本独立归档在 [`versions/`](versions/)�
 
 | 版本 | 日期 | 定位 | 归档目录 |
 |------|------|------|---------|
-| **v2.01**（当前推荐） | 2026-08-12 | 纯标准字段方案，移除 WPM 依赖 | [versions/v2.01](versions/v2.01/) |
+| **v3.0.0**（当前推荐） | 2026-08-13 | 皮肤 × IC 积分融合版（一个插件搞定） | [versions/v3.0.0](versions/v3.0.0/) |
+| v2.01 | 2026-08-12 | 纯标准字段方案，移除 WPM 依赖 | [versions/v2.01](versions/v2.01/) |
 | v2.0.0 | 2026-08-10 | +WPM 第三人称刀皮（依赖 WPM） | [versions/v2.0.0](versions/v2.0.0/) |
 | v1.1.0 | 2026-08-10 | +USP 皮肤、多项修复 | [versions/v1.1.0](versions/v1.1.0/) |
 | v1.0.0 | 2026-08-06 | 初始稳定版 | [versions/v1.0.0](versions/v1.0.0/) |
@@ -405,6 +427,32 @@ HnsSkin 历代版本源码已按版本独立归档在 [`versions/`](versions/)�
 ---
 
 ## 版本更新日志
+
+### v3.0.0（2026-08-13）— 皮肤 × IC 积分融合版
+
+**🆕 更新内容（关键）**
+
+| 更新 | 说明 |
+|------|------|
+| 皮肤系统 × IC 点系统融合 | 将独立版 `HnsSkin` 与 `HnsICPointMenu` 合并为单个插件 `HnsSkin.amxx`，一个插件同时搞定皮肤 + IC 积分 |
+| 统一主菜单 | `/skin` 主菜单新增「IC积分兑换」「查看积分」入口，实时显示当前积分 |
+| 共用存档 | 皮肤与 IC 积分共用同一个 nvault 存档，零额外依赖 |
+| 积分兑换永久解锁 | 用 IC 分兑换的皮肤直接解锁为玩家已拥有皮肤（永久），走皮肤系统统一的选择 / 应用 / 持久化流程 |
+| 保留对外接口 | 仍暴露 `ic_add_points` / `ic_get_points` native 接口，比赛系统可自行对接发分 |
+
+**🔧 融合细节**
+
+| 项 | 说明 |
+|------|------|
+| 菜单 ID 隔离 | 皮肤菜单（8001~8009）与 IC 菜单（8101~8103）分区，互不冲突 |
+| 共享 / 非共享模式 | `skinsys_shared` 控制 CT/T 是否共用人物皮肤，两种模式下主菜单与按键逻辑自适应 |
+| 管理员命令 | `/givetic`、`/giveic`、`/addic` 直接给予 IC 点（仅认 users.ini 官方认证管理员） |
+
+**⚠️ 升级提示**
+
+- 替换 `HnsSkin.amxx` 即可，无需再单独安装 `HnsICPointMenu.amxx`。
+- 已有玩家皮肤数据（nvault）不受影响，自动保留。
+- 若旧服同时装了独立版皮肤与 IC 点插件，请从 plugins.ini 移除旧插件，只保留融合版。
 
 ### v2.01（2026-08-12）— 纯标准字段方案，移除 WPM 依赖
 

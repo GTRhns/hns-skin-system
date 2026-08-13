@@ -30,6 +30,14 @@
 
 > 比赛版皮肤依赖 HNS 比赛系统，与独立版 HnsSkin 二选一启用，详见 [match-skin-v5/VERSION.md](match-skin-v5/VERSION.md)。
 
+### IC 点系统（独立发行）
+
+| 版本 | 插件标识 | 定位 | 归档目录 |
+|------|---------|------|---------|
+| [ic-v1.0.0](ic-v1.0.0/) | `HNS IC Point Menu` | IC 点系统（赏金局积分兑换皮肤，独立版） | [versions/ic-v1.0.0/](ic-v1.0.0/) |
+
+> IC 点系统为**独立发行版**，不打包进皮肤系统。依赖 `HnsMatchSystem.amxx` / `PersistentDataStorage` / `player_models.ini`，加载顺序须在 `HnsMenuNew.amxx` 之后。详见 [ic-v1.0.0/VERSION.md](ic-v1.0.0/VERSION.md)。
+
 ---
 
 ## 版本演进轴线

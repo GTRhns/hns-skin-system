@@ -34,9 +34,12 @@
 
 | 版本 | 插件标识 | 定位 | 归档目录 |
 |------|---------|------|---------|
-| [ic-v1.0.0](ic-v1.0.0/) | `HNS IC Point Menu` | IC 点系统（赏金局积分兑换皮肤，独立版） | [versions/ic-v1.0.0/](ic-v1.0.0/) |
+| [ic-v1.0.0](ic-v1.0.0/) | `HNS IC Point System` | IC 点系统（完全独立版，N键菜单/管理员给予/积分兑换皮肤） | [versions/ic-v1.0.0/](ic-v1.0.0/) |
 
-> IC 点系统为**独立发行版**，不打包进皮肤系统。依赖 `HnsMatchSystem.amxx` / `PersistentDataStorage` / `player_models.ini`，加载顺序须在 `HnsMenuNew.amxx` 之后。详见 [ic-v1.0.0/VERSION.md](ic-v1.0.0/VERSION.md)。
+> IC 点系统为**完全独立版**，发布在皮肤系统 DLC（`dlc/`）。不依赖任何比赛系统 /
+> PersistentDataStorage，仅依赖 AMXX 内置模块（reapi / nvault）。对外暴露
+> `ic_add_points` / `ic_get_points` native 接口供比赛系统对接。详见
+> [ic-v1.0.0/VERSION.md](ic-v1.0.0/VERSION.md)。
 
 ---
 

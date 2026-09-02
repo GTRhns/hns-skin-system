@@ -8,7 +8,7 @@
 
 [![AMX Mod X](https://img.shields.io/badge/AMX_Mod_X-1.10+-blue)]()
 [![ReGameDLL](https://img.shields.io/badge/ReGameDLL-5.x-orange)]()
-[![Version](https://img.shields.io/badge/Version-3.0.0-green)]()
+[![Version](https://img.shields.io/badge/Version-3.0.2-green)]()
 [![DLC](https://img.shields.io/badge/DLC-IC_Point_%2B_Accessory-9cf)]()
 [![License](https://img.shields.io/badge/License-GPLv3-success)]()
 

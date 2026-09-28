@@ -1,7 +1,14 @@
 -- ============================================================
--- HNS 皮肤系统 数据表 (与你的 hns 比赛库同库, 前缀 cpm_ 分表)
--- 通过 phpMyAdmin / HeidiSQL 在皮肤库中执行即可。
+-- HNS 皮肤系统 独立数据库 (默认库名: skins, 不与其他插件共用)
+-- 通过 phpMyAdmin / HeidiSQL 执行本文件即可, 会自动:
+--   1) 创建独立数据库 skins
+--   2) 创建三张表 (cpm_skins / cpm_player_skins / cpm_player_current)
+-- 插件连接配置: configs/mixsystem/skinsql.cfg (sk_host/sk_user/sk_pass/sk_db)
 -- ============================================================
+
+-- 0) 创建皮肤系统自己的独立库 (若库名改了, 同步修改 skinsql.cfg 的 sk_db)
+CREATE DATABASE IF NOT EXISTS skins DEFAULT CHARACTER SET utf8mb4;
+USE skins;
 
 -- 1) 皮肤池: 管理员维护的上架皮肤 (一行 = 一个阵营款式, 名字全服唯一)
 --    每款属于 T 或 C 阵营, 各自有一个模型 + 一个可复用死亡音效,
@@ -48,11 +55,10 @@ CREATE TABLE IF NOT EXISTS cpm_player_current (
 --   ALTER TABLE cpm_player_skins ADD COLUMN expire_at INT NOT NULL DEFAULT 0;
 --   (插件启动时也会自动补这一列, 手动执行可保证数据库先行一致)
 -- ============================================================
--- 常用查询示例:
+-- 常用查询示例 (在独立的 skins 库里执行):
 --   SELECT * FROM cpm_player_skins;                       -- 所有玩家拥有哪些皮肤
 --   SELECT * FROM cpm_player_skins WHERE authid='STEAM_0:1:123';  -- 指定玩家
---   SELECT s.authid, p.name, s.model_key, s.expire_at FROM cpm_player_skins s
---       LEFT JOIN hns_players p ON p.steamid=s.authid;    -- 带上玩家名字
 --   SELECT * FROM cpm_player_skins WHERE expire_at=0;     -- 全部永久皮肤
 --   SELECT * FROM cpm_player_skins WHERE expire_at>0;     -- 全部租期皮肤
+--   SELECT * FROM cpm_skins;                              -- 皮肤池全部上架款
 -- ============================================================

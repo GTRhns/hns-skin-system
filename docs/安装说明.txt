@@ -12,18 +12,20 @@
     给玩家发放 / 移除皮肤 (需要 ADMIN_RCON 权限)
   - 皮肤上架 = 在 MySQL 的 cpm_skins 表加一行, 无限添加(无数量上限)
   - 皮肤与玩家拥有信息存 MySQL, 可在 phpMyAdmin 里分页查询查看
-  - 与 HnsMatchSql 共用同一个数据库连接, 分表(前缀 cpm_)存储
+  - 使用自己独立的 MySQL 数据库 (默认库名 skins), 不与其他插件共用
   - 租期天数 / 升级永久价格 可在 skins.cfg 顶部 [SETTINGS] 区块自行设置
 
 ------------------------------------------------------------
-一、数据库
+一、数据库 (独立库, 不与其他插件共用)
 ------------------------------------------------------------
-1. 用 phpMyAdmin / HeidiSQL 登录你的 HNS 比赛库。
-2. 打开并执行  sql/hns_skins.sql  (会自动创建 3 张表):
-     cpm_skins          -> 皮肤池 (上架在这里加行)
-     cpm_player_skins   -> 玩家拥有皮肤 (★ 你要查询玩家皮肤的表)
-     cpm_player_current -> 玩家当前选用
-   ★ 若你的库已经建过 cpm_player_skins (老版本), 需补一列到期时间:
+1. 用 phpMyAdmin / HeidiSQL 登录你的 MySQL (随便哪个库都行,
+   皮肤系统会创建自己的独立库, 不会动你的其他库)。
+2. 打开并执行  sql/hns_skins.sql  (会自动创建):
+     数据库 skins
+        cpm_skins          -> 皮肤池 (上架在这里加行)
+        cpm_player_skins   -> 玩家拥有皮肤 (★ 你要查询玩家皮肤的表)
+        cpm_player_current -> 玩家当前选用
+   ★ 若你的库里已经建过 cpm_player_skins (老版本), 需补一列到期时间:
      ALTER TABLE cpm_player_skins ADD COLUMN expire_at INT NOT NULL DEFAULT 0;
      (expire_at: 0=永久, >0=租期到期时间戳; 插件启动也会自动补这列,
       手动执行可保证数据库先行一致)
@@ -73,17 +75,17 @@
     64 位环境, 直接把编译好的 .amxx 放到 plugins/ 也可以用)
 
 ------------------------------------------------------------
-四、数据库连接配置
+四、数据库连接配置 (本插件专属, 独立库)
 ------------------------------------------------------------
-插件自动读取 configs/mixsystem/hnsmatch-sql.cfg (与 HnsMatchSql 共用):
-  mixsystem/hnsmatch-sql.cfg 内容示例:
-    hns_host  127.0.0.1
-    hns_user  root
-    hns_pass  root
-    hns_db    hns
-  若你比赛库的配置文件名不同, 需打开 HnsMatchSkin.sma 修改:
-    #define DB_CFG_FILE  "mixsystem/hnsmatch-sql.cfg"
-  改为你的路径即可。
+插件自动读取 configs/mixsystem/skinsql.cfg (皮肤系统专用, 不影响其他插件):
+  mixsystem/skinsql.cfg 内容示例:
+    sk_host  127.0.0.1
+    sk_user  root
+    sk_pass  root
+    sk_db    skins
+  其中 sk_db 就是第一步 SQL 文件创建的独立库名 (默认 skins)。
+  若你的库名/账号不同, 改这里即可, 无需改源码。
+  改完 换图/重启 生效。
 
 ------------------------------------------------------------
 五、角色死亡音效 + 皮肤配置(TT/CT 分区块, 无限添加)

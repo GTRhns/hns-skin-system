@@ -6,7 +6,7 @@
 
 **HNS Skin System v1.0** is the fully rebuilt, open-source successor of the legacy `HnsSkin` plugin series (see the `versions/` archive). It is the **first official stable release** and completely rewrites the old codebase:
 
-- ✅ **MySQL-backed** — shares one database connection with your HNS match library (`HnsMatchSql`), stored in separate `cpm_` tables
+- ✅ **MySQL-backed** — uses its own dedicated MySQL database (default `skins`), not shared with any other plugin; connection configured in `configs/mixsystem/skinsql.cfg`
 - ✅ **Unlimited skins** — add skins without any hard limit (bounded only by the model precache limit)
 - ✅ **Rental + Permanent** — buying a skin grants a **30-day rental** (configurable); upgrade it to permanent with coins (default **2000**, configurable); **admins grant permanent** skins directly
 - ✅ **TT / CT sectioned config** — skins are grouped by team in `skins.cfg`
@@ -39,7 +39,7 @@
 
 ## 🚀 Quick Start
 
-1. Import [`sql/hns_skins.sql`](sql/hns_skins.sql) into your MySQL database (creates 3 tables). Existing DBs only need:
+1. Import [`sql/hns_skins.sql`](sql/hns_skins.sql) — it creates the **dedicated `skins` database** plus the 3 tables (`cpm_skins` / `cpm_player_skins` / `cpm_player_current`). Legacy DBs only need:
    `ALTER TABLE cpm_player_skins ADD COLUMN expire_at INT NOT NULL DEFAULT 0;`
 2. Copy `addons/` into your server (merge with the existing `addons/` folder).
 3. Make sure `CustomPlayerModelsApi.amxx` is loaded **before** `HnsMatchSkin.amxx` in `plugins.ini`.

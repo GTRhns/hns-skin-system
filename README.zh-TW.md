@@ -8,7 +8,7 @@
 
 **HNS 皮膚系統 v1.0（正式版）** 是舊版 `HnsSkin` 插件系列的**全面重構開源版**，也是該系列**第一個官方正式穩定版本**。它把之前零散、依賴本機檔案的老皮膚系統徹底推倒重來，改寫為：
 
-- ✅ **MySQL 連線** —— 與你的 HNS 比賽庫（`HnsMatchSql`）共用同一個資料庫連線，分表（前綴 `cpm_`）儲存
+- ✅ **MySQL 連線** —— 使用自己獨立的 MySQL 資料庫（預設庫名 `skins`），不與其他插件共用，連線設定在 `configs/mixsystem/skinsql.cfg`
 - ✅ **無限添加皮膚** —— 想加多少加多少，沒有硬性數量上限（只受伺服器模型預快取上限約束）
 - ✅ **租期 + 永久機制** —— 金幣購買預設獲得 **30 天租期**（可設定）；花金幣可升級為永久（預設 **2000**，可設定）；**管理員可直接發放永久**
 - ✅ **TT / CT 分區塊設定** —— 設定檔按陣營分區，T 款 / CT 款一目了然
@@ -54,7 +54,7 @@
 - 皮膚選單即時顯示狀態：`[永久]` / `[剩X天]` / `[已過期]`
 
 ### 3.2 MySQL 資料
-- 與 HnsMatchSql 共用同一個資料庫連線（讀 `mixsystem/hnsmatch-sql.cfg`）
+- 使用自己獨立的 MySQL 資料庫（預設庫名 `skins`，讀 `mixsystem/skinsql.cfg`），不與其他插件共用
 - 3 張表，前綴 `cpm_`：皮膚池 / 玩家擁有 / 玩家當前選用
 - 支援 phpMyAdmin 直接查詢玩家擁有哪些皮膚、哪些是永久、哪些即將到期
 - 插件啟動自動建表，老庫自動補 `expire_at` 欄，無需手動改庫
@@ -79,7 +79,7 @@
 ## 四、快速開始（安裝部署）
 
 ### 4.1 資料庫
-1. 在 MySQL 中執行 [`sql/hns_skins.sql`](sql/hns_skins.sql)（自動建立 3 張表）。
+1. 在 MySQL 中執行 [`sql/hns_skins.sql`](sql/hns_skins.sql)（自動建立**獨立資料庫 `skins`** 和 3 張表）。
 2. **老庫升級**：已建過 `cpm_player_skins` 的庫，只需執行：
    ```sql
    ALTER TABLE cpm_player_skins ADD COLUMN expire_at INT NOT NULL DEFAULT 0;
@@ -89,7 +89,7 @@
 ### 4.2 插件部署
 1. 把 `addons/` 整個目錄合併覆蓋到伺服器的 `addons/`。
 2. 確認 `configs/plugins.ini` 中 `CustomPlayerModelsApi.amxx` 排在 `HnsMatchSkin.amxx` **之前**（顯示引擎必須先載入）。
-3. 資料庫連線複用 `mixsystem/hnsmatch-sql.cfg`（和 HnsMatchSql 同一個檔案）。
+3. 資料庫連線使用皮膚系統專屬的 `mixsystem/skinsql.cfg`（獨立庫，不與其他插件共用）。
 
 ### 4.3 設定皮膚
 編輯 `addons/amxmodx/configs/mixsystem/skins.cfg`：

@@ -1,7 +1,10 @@
 /* ============================================================
    HNS Match Skin  -  玩家自定义皮肤系统
-   与你的 HNS 比赛库(HnsMatchSql) 共用同一个 MySQL 库, 分表前缀 cpm_
-   货币: 复用 ICGB 金币 (hns_gc_get_player / hns_gc_set_player)
+   独立数据库: 使用自己专属的 MySQL 数据库 (默认库名 skins),
+              不与其他插件(如 HnsMatchSql 的 hns 主库)共用,
+              连接配置在 configs/mixsystem/skinsql.cfg 里设置。
+   货币: 复用 ICGB 金币接口 (hns_gc_get_player / hns_gc_set_player,
+         金币存储由外部插件提供, 可选依赖, 无提供方时余额为 0)
    显示引擎: 依赖 CustomPlayerModelsApi.sma (模型 precache / 客户端显示)
    ------------------------------------------------------------
    模型 / 音效策略:
@@ -21,7 +24,7 @@
    管理菜单: /cpm       查看皮肤池 / 查看玩家拥有 / 发放(永久) / 移除
    依赖:
      - CustomPlayerModelsApi.amxx  (须在 plugins.ini 中排在本插件之前)
-     - HnsMatchSql.amxx 的 SQL 连接与 ICGB 金币接口
+     - ICGB 金币提供方 (HnsMatchSql / HnsSponsorLocal, 可选)
    ============================================================ */
 
 #include <amxmodx>
@@ -35,17 +38,19 @@
 #include <hns_gc>
 #include <custom_player_models>
 
-// ---- 表名 (与你的 hns 库同库, cpm_ 前缀分表) ----
+// ---- 表名 (皮肤系统自己的独立库, cpm_ 前缀分表) ----
 #define SKINS_TABLE   "cpm_skins"
 #define OWNS_TABLE    "cpm_player_skins"
 #define CUR_TABLE     "cpm_player_current"
 
-// ---- 数据库连接: 直接读取你 HnsMatchSql 共用的那个 cfg ----
-#define DB_CFG_FILE   "mixsystem/hnsmatch-sql.cfg"
+// ---- 数据库连接: 读取本插件专属的 cfg (独立库, 不与其他插件共用) ----
+// 连接参数在 configs/mixsystem/skinsql.cfg 里配置:
+//   sk_host / sk_user / sk_pass / sk_db   (默认库名 skins)
+#define DB_CFG_FILE   "mixsystem/skinsql.cfg"
 #define DEFAULT_HOST  "127.0.0.1"
 #define DEFAULT_USER  "root"
 #define DEFAULT_PASS  "root"
-#define DEFAULT_DB    "hns"
+#define DEFAULT_DB    "skins"
 
 // ---- 死亡音效长度 ----
 #define DEATH_SND_MAX 80
@@ -284,10 +289,10 @@ bool:LoadDbCfg() {
 			for (new j = 0; szVal[j] && j < iLen; j++) szVal[j] = szVal[j + 1];
 		}
 
-		if (equali(szKey, "hns_host")) copy(g_eDb[db_host], charsmax(g_eDb[db_host]), szVal);
-		else if (equali(szKey, "hns_user")) copy(g_eDb[db_user], charsmax(g_eDb[db_user]), szVal);
-		else if (equali(szKey, "hns_pass")) copy(g_eDb[db_pass], charsmax(g_eDb[db_pass]), szVal);
-		else if (equali(szKey, "hns_db"))   copy(g_eDb[db_db],   charsmax(g_eDb[db_db]),   szVal);
+		if (equali(szKey, "sk_host")) copy(g_eDb[db_host], charsmax(g_eDb[db_host]), szVal);
+		else if (equali(szKey, "sk_user")) copy(g_eDb[db_user], charsmax(g_eDb[db_user]), szVal);
+		else if (equali(szKey, "sk_pass")) copy(g_eDb[db_pass], charsmax(g_eDb[db_pass]), szVal);
+		else if (equali(szKey, "sk_db"))   copy(g_eDb[db_db],   charsmax(g_eDb[db_db]),   szVal);
 	}
 	fclose(file);
 

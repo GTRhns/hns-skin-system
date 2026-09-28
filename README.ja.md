@@ -8,7 +8,7 @@
 
 **HNS スキンシステム v1.0（正式版）** は、旧 `HnsSkin` プラグインシリーズを**全面リビルドしたオープンソース版**であり、このシリーズの**初の公式安定版**です。ローカルファイルに依存していた旧システムを完全に書き直しました:
 
-- ✅ **MySQL 対応** — HNS マッチライブラリ（`HnsMatchSql`）と同じ DB 接続を共有し、`cpm_` プレフィックスの別テーブルを使用
+- ✅ **MySQL 対応** — 専用の独立 DB を使用（既定 DB 名 `skins`）、他のプラグインとは共有しない; 接続設定は `configs/mixsystem/skinsql.cfg`
 - ✅ **スキン無制限追加** — 数に上限なし（サーバーのモデルプリキャッシュ上限まで）
 - ✅ **レンタル＋永続** — 購入で基本 **30日レンタル**（設定可）; コインで**永続化アップグレード**（既定 **2000**、設定可）; **管理者は直接永続付与**
 - ✅ **TT / CT セクション設定** — 陣営ごとに分かれた設定ファイル
@@ -54,7 +54,7 @@
 - メニューに状態表示: `[永久]` / `[残りX日]` / `[期限切れ]`
 
 ### 3.2 MySQL データ
-- HnsMatchSql と同じ DB 接続を共有（`mixsystem/hnsmatch-sql.cfg` を参照）
+- 専用の独立 DB を使用（既定 DB 名 `skins`、`mixsystem/skinsql.cfg` を参照）、他のプラグインとは共有しない
 - テーブル 3 つ（`cpm_` プレフィックス）: スキンプール / プレイヤー所有 / 現在選択
 - phpMyAdmin で所有状況、永続かどうか、まもなく期限切れのスキンを照会可能
 - プラグインが自動でテーブル作成、既存 DB には `expire_at` カラムを自動追加
@@ -79,7 +79,7 @@
 ## 4. インストール
 
 ### 4.1 データベース
-1. MySQL で [`sql/hns_skins.sql`](sql/hns_skins.sql) を実行（テーブル 3 つ作成）。
+1. MySQL で [`sql/hns_skins.sql`](sql/hns_skins.sql) を実行（**専用 DB `skins`** とテーブル 3 つを作成）。
 2. **既存 DB のアップグレード**（`cpm_player_skins` が既にある場合）:
    ```sql
    ALTER TABLE cpm_player_skins ADD COLUMN expire_at INT NOT NULL DEFAULT 0;
@@ -89,7 +89,7 @@
 ### 4.2 プラグイン配布
 1. `addons/` フォルダをサーバーの `addons/` にマージ。
 2. `configs/plugins.ini` で `CustomPlayerModelsApi.amxx` が `HnsMatchSkin.amxx` の**前**にあること。
-3. DB 接続は `mixsystem/hnsmatch-sql.cfg` を再利用（HnsMatchSql と同じ）。
+3. DB 接続は `mixsystem/skinsql.cfg` を使用（スキンシステム専用の独立 DB、他のプラグインとは共有しない）。
 
 ### 4.3 スキン設定
 `addons/amxmodx/configs/mixsystem/skins.cfg`:

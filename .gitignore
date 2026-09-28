@@ -17,4 +17,4 @@ Thumbs.db
 
 # 编译器与冗余文件（不进仓库）
 amxxpc32.so
-*.zip
+# 注意: versions/ 下的发行版 zip 是刻意保留的发布归档, 不使用 *.zip 忽略规则

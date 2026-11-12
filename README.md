@@ -1,23 +1,24 @@
-# HNS Skin System · 正式版 v1.0 (Official Release)
+# HNS Skin System · v4.0.0 (Official Release)
 
-> Counter-Strike 1.6 / AMX Mod X · MySQL-powered custom skin system for the **GTR HNS** (Hide & Seek) server ecosystem.
+> Counter-Strike 1.6 / AMX Mod X · standalone custom skin system for **GTR HNS** (Hide & Seek) servers.
 
 ![avatar](assets/avatar.jpg)
 
-**HNS Skin System v1.0** is the fully rebuilt, open-source successor of the legacy `HnsSkin` plugin series (see the `versions/` archive). It is the **first official stable release** and completely rewrites the old codebase:
+**HNS Skin System v4.0.0** is the new standalone release of the `HnsSkin` plugin series. It replaces the old `HnsMatchSkin` plugin on `main` and no longer shares the match plugin's `mixsystem` configs, database or coin table.
 
-- ✅ **MySQL-backed** — uses its own dedicated MySQL database (default `skins`), not shared with any other plugin; connection configured in `configs/mixsystem/skinsql.cfg`
-- ✅ **Unlimited skins** — add skins without any hard limit (bounded only by the model precache limit)
-- ✅ **Rental + Permanent** — buying a skin grants a **30-day rental** (configurable); upgrade it to permanent with coins (default **2000**, configurable); **admins grant permanent** skins directly
-- ✅ **TT / CT sectioned config** — skins are grouped by team in `skins.cfg`
-- ✅ **Death sound per skin** — each skin can carry its own death sound (reusable across skins)
-- ✅ **ICGB coin economy** — reuses your existing coin API (`hns_gc_get_player` / `hns_gc_set_player`)
+## What's new in v4.0.0
 
----
+- 🌍 **English by default, 4 languages included** — English, 简体中文, 繁體中文, Русский.
+  A player whose client language is not `cn` / `tw` / `en` / `ru` is switched to English 2 seconds after connecting.
+  Players who pick a language manually with `/lang` keep their own choice.
+- 🗂 **Redesigned menus** — character skins (TT / CT separated), knife models, grenade models (smoke / flash), GBIC points, smoke color, MySQL status and the admin panel are now separate entries. `/skin` stays the single entry point.
+- 🔁 **Deathmatch team-switch follow** — in deathmatch, when a player is knifed and swapped to the other team without respawning, the plugin detects the new team within one second and applies that side's skin and knife automatically. No respawn required.
+- 💾 **Own database and currency** — uses its own SQLite / MySQL storage and its own GBIC points; never reads the match plugin's `mixsystem` or coin table.
+- 🛠 **Install-and-go package** — compiled `.amxx` files, full source, includes and example configs are all included.
 
-## 🌍 Languages
+## Languages
 
-| Language | File |
+| Language | Documentation |
 |---|---|
 | 🇬🇧 English | [README.md](README.md) |
 | 🇨🇳 简体中文 | [README.zh-CN.md](README.zh-CN.md) |
@@ -26,68 +27,86 @@
 | 🇰🇷 한국어 | [README.ko.md](README.ko.md) |
 | 🇯🇵 日本語 | [README.ja.md](README.ja.md) |
 
----
+The plugin language file is [`addons/amxmodx/data/lang/hns_skin.txt`](addons/amxmodx/data/lang/hns_skin.txt) with `[cn]`, `[tw]`, `[en]` and `[ru]` sections. The `README.*` files are documentation only; the in-game default is English.
 
-## ✨ Feature Highlights
+## Quick Start
 
-- **30-day rental by default** — every coin purchase writes `expire_at = now + rent_days`; expired skins are cleaned automatically and can be re-purchased
-- **Upgrade to permanent** — `/skin` menu → “Upgrade to Permanent”, costs `upgrade_price` coins (default 2000)
-- **Admin permanent grant** — `/cpm` menu grant = permanent (`expire_at = 0`), also upgrades an existing rental
-- **Auto DB migration** — plugin adds the `expire_at` column to an existing `cpm_player_skins` table on startup
-- **Menu status display** — `[永久]` / `[剩X天]` / `[已过期]` shown per skin
-- **Configurable core values** — `[SETTINGS]` block in `skins.cfg`: `rent_days`, `upgrade_price`
+1. Merge `addons/` into your server's `cstrike/addons/` directory.
+2. Make sure the load order in `configs/plugins.ini` is:
 
-## 🚀 Quick Start
+   ```
+   CustomPlayerModelsApi.amxx
+   HnsSponsorLocal.amxx
+   HnsSkin.amxx
+   ```
 
-1. Import [`sql/hns_skins.sql`](sql/hns_skins.sql) — it creates the **dedicated `skins` database** plus the 3 tables (`cpm_skins` / `cpm_player_skins` / `cpm_player_current`). Legacy DBs only need:
-   `ALTER TABLE cpm_player_skins ADD COLUMN expire_at INT NOT NULL DEFAULT 0;`
-2. Copy `addons/` into your server (merge with the existing `addons/` folder).
-3. Make sure `CustomPlayerModelsApi.amxx` is loaded **before** `HnsMatchSkin.amxx` in `plugins.ini`.
-4. Edit `addons/amxmodx/configs/mixsystem/skins.cfg` to add your skins.
-5. Change map / restart. Done.
+   `crx_knife_models.amxx` (optional, for knife skins) must be loaded **before** `HnsSkin.amxx`.
+3. Do **not** load the old `HnsMatchSkin.amxx` at the same time — both register `/skin`.
+4. Enable the `sqlite` module in `modules.ini`; points and daily check-in need `nvault`.
+5. Change map or restart the server.
 
-Full install guide: [`docs/安装说明.txt`](docs/安装说明.txt)
+Chinese install guide: [`docs/安装说明.txt`](docs/安装说明.txt).
 
-## 🗂️ Repository Layout
+## Feature Highlights
+
+- **Unlimited skins** — add as many as the model precache limit allows
+- **TT / CT separated** — each skin belongs to one team; players only see and buy the skin of their current team
+- **Rental + permanent** — coin purchase grants a 30-day rental (configurable); upgrade it to permanent with coins; admin grants are permanent
+- **Death sound per skin** — each skin can carry one or more death sounds, randomly picked on death
+- **Knife / grenade skins** — knife models via `crxknives`, smoke and flash models via `nade_skins.cfg`
+- **Daily check-in and playtime rewards** — GBIC economy fully inside the skin system
+- **Precache guard** — `precache_max` protects heavy HNS maps from the CS 1.6 512-model limit
+- **Background grant** — `cpm_skin_grant` lets you grant skins to offline players directly from HeidiSQL / phpMyAdmin
+
+## Repository layout
 
 ```
 hns-skin-system/
-├── addons/amxmodx/            # deployable plugin package (compiled .amxx + source + includes + configs)
-├── sql/hns_skins.sql          # database schema (cpm_skins / cpm_player_skins / cpm_player_current)
-├── docs/                      # installation documentation
-├── assets/                    # author avatar
-├── versions/                  # archived legacy releases (v1.0.0 ~ v3.0.2, match-skin-v5)
-├── LICENSE                    # GPLv3
-└── README.*.md                # multilingual documentation
+├── addons/amxmodx/              # deployable package
+│   ├── plugins/                 # compiled .amxx (3 plugins)
+│   ├── scripting/               # source + include/
+│   ├── configs/                 # plugins.ini, KnifeModels.ini, skinsql/, custom_player_models.cfg
+│   └── data/lang/hns_skin.txt   # cn / tw / en / ru language file
+├── docs/                        # installation guide (Chinese)
+├── assets/                      # author avatar
+├── versions/                    # legacy releases (v1.0.0 ~ v3.1.0)
+├── CHANGELOG.md
+├── LICENSE                      # GPLv3
+└── README.*.md                  # multilingual documentation
 ```
 
-## 🎮 Commands
+## Commands
 
 | Command | Access | Description |
 |---|---|---|
-| `/skin` | everyone | choose / buy / upgrade the current team's skins |
-| `/cpm` | ADMIN_RCON | admin menu: view pool / view player ownership / grant (permanent) / remove |
+| `/skin` | everyone | skin shop: character / knife / grenade / points / smoke color |
+| `/lang` | everyone | switch language (cn / tw / en / ru) |
+| `/sign` | everyone | daily check-in (`/checkin`, `/qd`, `/签到` also work) |
+| `/cpm` | ADMIN_RCON | admin menu: pool, ownership, grant, remove, clear |
+| `amx_giveskin <steamid> <skin\|all\|all_t\|all_c\|all_knife\|all_nade>` | ADMIN_IMMUNITY | grant skins to an online or offline player |
+| `amx_takeskin <steamid> <skin\|all\|all_knife\|all_nade>` | ADMIN_IMMUNITY | remove skins |
+| `amx_clearskin <steamid>` | ADMIN_IMMUNITY | clear all skins of a player |
 
-## 🛠️ Modifications & Key Functions (v1.0)
+## Configuration
 
-See the per-language README for the full technical breakdown. Key changes vs the legacy series:
-
-| Function | Change |
+| File | Purpose |
 |---|---|
-| `DoBuy()` | purchase now writes a **rental** (`expire_at`), supports re-buy after expiry |
-| `DoUpgrade()` | **new** — spend `upgrade_price` coins to make a rental permanent |
-| `GiveSkinTo()` | admin grant = **permanent** (`expire_at=0`), upgrades existing rentals |
-| `SkinExpire()` / `IsSkinValid()` / `DaysLeft()` | **new** — rental expiry helpers |
-| `Db_InsertOwned()` | now stores `expire_at`, upsert via `ON DUPLICATE KEY UPDATE` |
-| `Db_SetPermanent()` | **new** — sets `expire_at=0` |
-| `ImportSkinsToDb()` | parses the `[SETTINGS]` block (`rent_days` / `upgrade_price`) |
-| `CreateTablesSync()` | adds the `expire_at` column + auto ALTER for legacy DBs |
-| `MenuSkin` / new upgrade menus | status display + “upgrade to permanent” flow |
+| `configs/skinsql/skins.cfg` | skin pool, `[SETTINGS]` block, `storage local/mysql` |
+| `configs/skinsql/nade_skins.cfg` | smoke / flash grenade skins |
+| `configs/skinsql/knife_skins.cfg` | knife shop prices |
+| `configs/skinsql/skinsql.cfg.example` | MySQL connection template |
+| `configs/KnifeModels.ini` | knife model definitions used by `crxknives` |
+| `configs/custom_player_models.cfg` | player model engine cvars |
 
-## 📦 Legacy Releases
+Default database is local SQLite at `addons/amxmodx/data/sqlite3/skinsql.sq3`; tables are created automatically. To use MySQL, copy `skinsql.cfg.example` to `skinsql.cfg`, fill in the credentials and set `storage mysql` in `skins.cfg`.
 
-The `versions/` folder keeps all previous releases (HnsSkin v1.0.0 → v3.0.2, match-skin-v5, IC point menu) for history. This repository is now restarted as the **official v1.0**.
+## Legacy releases
 
-## 📄 License
+`versions/` keeps all previous releases for history:
 
-GNU GPL v3 — see [LICENSE](LICENSE).
+- `v3.1.0` — the old `HnsMatchSkin` main-branch addons, SQL schema and install docs (archived in this release)
+- `v3.0.2`, `v3.0.0`, `v2.02`, `v2.01`, `v2.0.0`, `v1.1.0`, `v1.0.0`, `match-skin-v5`, `ic-v1.0.0`, `skin-1.0`
+
+## License
+
+GPLv3 — see [LICENSE](LICENSE).

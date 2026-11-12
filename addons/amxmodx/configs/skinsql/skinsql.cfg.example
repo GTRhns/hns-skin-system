@@ -1,0 +1,12 @@
+; 皮肤库自己的 MySQL。不要用比赛的 hnsmatch-sql.cfg。
+; 复制为 amxmodx/configs/skinsql/skinsql.cfg
+; 不要把真实密码提交到开源仓库。
+
+skin_host "127.0.0.1"
+skin_user "root"
+skin_pass "changeme"
+skin_db "skinsql"
+
+; local 或 sqlite = 强制本地库，会盖过 skins.cfg
+; mysql = 使用上面的库，库名不要填比赛库
+; skin_storage "mysql"

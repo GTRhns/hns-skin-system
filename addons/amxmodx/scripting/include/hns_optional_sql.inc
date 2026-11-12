@@ -26,9 +26,41 @@ public hns_optional_native_filter(const szName[], index, trap) {
 
 	if (contain(szName, "hns_sql_") == 0)
 		return PLUGIN_HANDLED;
-	if (contain(szName, "hns_gc_") == 0)
+	if (contain(szName, "hns_gc_") == 0 || contain(szName, "skin_gc_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_hudcolor_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_speccolor_") == 0)
+		return PLUGIN_HANDLED;
+	if (equal(szName, "hns_title_get"))
+		return PLUGIN_HANDLED;
+	if (equal(szName, "hns_ai_stake_enabled") || equal(szName, "hns_ai_stake_frozen"))
 		return PLUGIN_HANDLED;
 	if (contain(szName, "HnsLang_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_satchel_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_frost_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_mflash_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_showkeys_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_live_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_smokenade_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_headstomp_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_headheal_") == 0)
+		return PLUGIN_HANDLED;
+	if (contain(szName, "hns_playeradmin_") == 0)
+		return PLUGIN_HANDLED;
+	if (equal(szName, "hns_get_match_type"))
+		return PLUGIN_HANDLED;
+	if (equal(szName, "hns_external_set_match_type"))
+		return PLUGIN_HANDLED;
+	if (equal(szName, "hns_last_nade_granted"))
 		return PLUGIN_HANDLED;
 	if (contain(szName, "SQL_") == 0)
 		return PLUGIN_HANDLED;
@@ -43,6 +75,7 @@ public hns_optional_module_filter(const szName[], LibType:type) {
 		|| equal(szName, "mysql")
 		|| equal(szName, "hns_gc_sql")
 		|| equal(szName, "hns_gc_local")
+		|| equal(szName, "skin_gc_local")
 		|| equal(szName, "hns_match_sql"))
 		return PLUGIN_HANDLED;
 

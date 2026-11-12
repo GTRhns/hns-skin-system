@@ -44,6 +44,14 @@
 
 完整說明：[`docs/安装说明.txt`](docs/安装说明.txt)。
 
+## 模型與聲音配置
+
+- **人物皮膚（第三人稱）**：模型放 `cstrike/models/player/<資料夾>/<資料夾>.mdl`，在 `configs/skinsql/skins.cfg` 的 `[T]` / `[CT]` 下加一行 `名字 模型路徑 價格`。CS 1.6 第一人稱看不到人物皮膚，只影響別人 / 觀戰 / 第三人稱視角。
+- **刀皮（第一 / 第三人稱）**：`configs/KnifeModels.ini` 裡 `V_MODEL` = 第一人稱（自己手裡），`P_MODEL` = 第三人稱（別人看到）；只寫 `V_MODEL` 時別人看到預設刀。
+- **投擲物**：`configs/skinsql/nade_skins.cfg` 寫 `v_` 模型，插件會自動找同目錄的 `p_` / `w_` 模型。
+- **聲音（支援第三方 WAV）**：檔案放 `cstrike/sound/<子目錄>/<檔名>.wav`，設定寫相對 `sound/` 的路徑（例如 `wav skin/die.wav`）。用 PCM WAV，不要用 mp3。人物死亡音效寫在 `skins.cfg` 的 `wav` 行，刀音效寫在 `KnifeModels.ini` 的 `SELECT_SOUND` / `DEPLOY_SOUND` / `SLASH_SOUND` / `STAB_SOUND` / `HIT_SOUND` / `HITWALL_SOUND`。
+- 模型與聲音都要上 FastDL（`FastDL/models/...`、`FastDL/sound/...`），否則客戶端會缺模型或沒聲音。
+
 ## 指令
 
 | 指令 | 權限 | 說明 |

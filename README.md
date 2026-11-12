@@ -95,10 +95,91 @@ hns-skin-system/
 | `configs/skinsql/nade_skins.cfg` | smoke / flash grenade skins |
 | `configs/skinsql/knife_skins.cfg` | knife shop prices |
 | `configs/skinsql/skinsql.cfg.example` | MySQL connection template |
-| `configs/KnifeModels.ini` | knife model definitions used by `crxknives` |
+| `configs/KnifeModels.ini` | knife first-person / third-person models and sounds |
 | `configs/custom_player_models.cfg` | player model engine cvars |
 
 Default database is local SQLite at `addons/amxmodx/data/sqlite3/skinsql.sq3`; tables are created automatically. To use MySQL, copy `skinsql.cfg.example` to `skinsql.cfg`, fill in the credentials and set `storage mysql` in `skins.cfg`.
+
+### Adding character skins (third-person body model)
+
+1. Put the model at `cstrike/models/player/<folder>/<folder>.mdl`; the folder name must match the `.mdl` name (textures stay in the same folder).
+2. Add one line under `[T]` or `[CT]` in `skins.cfg`:
+
+   ```
+   [T]
+   北极战士  models/player/arctic/arctic.mdl  0
+   wav skin/arctic_die1.wav
+   wav skin/arctic_die2.wav
+
+   [CT]
+   德国GSG9  models/player/gsg9/gsg9.mdl  500
+   ```
+
+   Format: `name  model path  price`. The name is the unique key — never rename it after players buy it. A `wav` line belongs to the skin above it; multiple `wav` lines (or comma-separated paths) are picked at random on death.
+3. Apply on map change, or `/cpm` → MySQL status → **Resync skin catalog**.
+
+Character skins change the **third-person body** only (what other players, spectators and third-person cameras see). CS 1.6 cannot replace your own first-person arms/weapon with a player model.
+
+### First-person / third-person weapon models
+
+CS 1.6 uses three model prefixes:
+
+| Prefix | View | Meaning |
+|---|---|---|
+| `v_` | first person | the model in your own hands |
+| `p_` | third person | the model other players / spectators see |
+| `w_` | world | the model lying on the ground / in the world |
+
+**Knives** — `configs/KnifeModels.ini`:
+
+```
+[爪子刀女手]
+V_MODEL = models/v_knife4.mdl    ; first person
+P_MODEL = models/p_knife4.mdl    ; third person
+PRICE   = 300                    ; 0 = free
+```
+
+- `V_MODEL` only → you see the new knife, others see the stock `p_knife.mdl`.
+- Both → both views use the new knife.
+- Empty or missing file → fall back to `v_knife.mdl` / `p_knife.mdl`.
+- The section name must match `knife_skins.cfg` for the price override to apply.
+
+**Grenades** — `configs/skinsql/nade_skins.cfg`, one line each:
+
+```
+my_smoke  nade/v_smoke_blue  500  smoke
+my_flash  nade/v_flash_gold  300  flash
+```
+
+Use the `v_` path; the plugin automatically looks for `p_xxx.mdl` (third person) and `w_xxx.mdl` (world) in the same folder and precaches them if present. With only `v_`, the first person changes and the other views stay stock.
+
+### Sounds (custom third-party WAVs)
+
+Two sound systems are configurable:
+
+1. **Per-skin death sound** — `wav` lines in `skins.cfg` (see above).
+2. **Per-knife sounds** — `*_SOUND` keys under a knife section in `KnifeModels.ini`:
+
+   ```
+   SELECT_SOUND  = knife/select.wav     ; selecting in the shop
+   DEPLOY_SOUND  = knife/deploy.wav     ; drawing the knife
+   SLASH_SOUND   = knife/slash.wav      ; light attack
+   STAB_SOUND    = knife/stab.wav       ; heavy stab
+   HIT_SOUND     = knife/hit.wav        ; hitting a player
+   HITWALL_SOUND = knife/hitwall.wav    ; hitting a wall
+   SELECT_MESSAGE = selected message (color codes allowed)
+   ```
+
+File placement and format:
+
+- Put files in `cstrike/sound/<folder>/<file>.wav`.
+- In the config write the path **relative to `sound/`**, without the `sound/` prefix:
+  file `cstrike/sound/skin/miku.wav` → `wav skin/miku.wav`.
+- Use PCM WAV (16-bit mono, 11025 or 22050 Hz recommended). `precache_sound` / `emit_sound` in CS 1.6 do **not** play MP3, so do not use `.mp3` for event sounds.
+- Use lowercase ASCII names without spaces.
+- All models and sounds are precached at map start. Clients need the files too: mirror them on FastDL (`FastDL/sound/...`, `FastDL/models/...`) or allow `sv_allowdownload 1`.
+
+For a Chinese step-by-step guide, see [`docs/安装说明.txt`](docs/安装说明.txt).
 
 ## Legacy releases
 

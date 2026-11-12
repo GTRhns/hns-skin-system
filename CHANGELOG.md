@@ -11,6 +11,7 @@ Standalone rewrite of the skin system, replacing the old `HnsMatchSkin` plugin o
 - Redesigned menus: `/skin` now separates character skins (TT / CT), knife models, grenade models (smoke / flash), GBIC points, smoke color, MySQL status and the admin panel.
 - `HnsSponsorLocal.amxx` for the skin system's own GBIC points, decoupled from the match plugin's coin table.
 - `precache_max` setting to avoid the CS 1.6 512-model limit on heavy HNS maps.
+- Documentation for adding character skins, first-person / third-person weapon models (`v_` / `p_` / `w_`) and custom third-party WAV sounds (death sounds and knife sounds), including FastDL paths.
 
 ### Changed
 - The skin system uses its own database (`skinsql` SQLite by default, MySQL optional) and its own config directory `configs/skinsql`; it no longer reads `mixsystem` or the match plugin's database.

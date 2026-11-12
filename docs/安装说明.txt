@@ -47,31 +47,192 @@
     4. 换图/重启生效
   MySQL 必须用皮肤系统自己的库, 不要填比赛库。
 
-【配置】
-  configs/skinsql/skins.cfg
-    [SETTINGS] 区块可改:
-      storage          local / mysql
-      rent_days        金币购买获得的租期天数, 0 = 直接永久 (默认 30)
-      upgrade_price    限时皮肤升级永久的价格 (默认 2000 GBIC)
-      knife_free       刀皮前 N 把免费
-      nade_free        投掷物皮肤前 N 个免费
-      checkin_bonus    每日签到奖励
-      playtime_bonus   在线满 1 小时奖励
-      precache_max     每张地图最多预缓存多少个皮肤模型
-                       (CS1.6 模型池只有 512 个, 重型 HNS 地图容易崩服;
-                        遇到崩服就调小, 例如 24 / 16)
+【配置总览】
+  configs/skinsql/skins.cfg          人物皮肤池 + 全局设置
+  configs/skinsql/nade_skins.cfg     烟雾弹 / 闪光弹皮肤
+  configs/skinsql/knife_skins.cfg    刀皮商店价格
+  configs/skinsql/skinsql.cfg        MySQL 连接 (默认用 SQLite 时不需要)
+  configs/KnifeModels.ini            刀的第一人称/第三人称模型 + 刀音效
+  configs/custom_player_models.cfg   人物模型引擎参数 (自动生成)
 
-  configs/skinsql/skins.cfg
-    [T] / [TT]  恐怖分子款
-    [CT]        反恐精英款
-    每款两行:
-      名字  模型路径  价格
-      wav 音效路径            ; 可选, 属于上一款, 可写多行
+  skins.cfg 顶部 [SETTINGS] 可改:
+    storage          local / mysql
+    rent_days        金币购买获得的租期天数, 0 = 直接永久 (默认 30)
+    upgrade_price    限时皮肤升级永久的价格 (默认 2000 GBIC)
+    knife_free       刀皮前 N 把免费
+    nade_free        投掷物皮肤前 N 个免费
+    checkin_bonus    每日签到奖励
+    playtime_bonus   在线满 1 小时奖励
+    playtime_seconds 在线奖励所需秒数
+    precache_max     每张地图最多预缓存多少个皮肤模型
+                     0 = 不限制; 重型 HNS 地图建议 16~24
+                     (CS1.6 模型池只有 512 个, 和地图刷子模型共用,
+                      预缓存太多会崩服 "over the 512 limit")
 
-  configs/skinsql/nade_skins.cfg   烟雾弹 / 闪光弹皮肤
-  configs/skinsql/knife_skins.cfg  刀皮商店价格覆盖
-  configs/KnifeModels.ini          刀模型定义 (crxknives 引擎读取)
-  configs/custom_player_models.cfg 人物模型引擎参数 (自动生成, 一般不用改)
+------------------------------------------------------------
+【一、添加人物皮肤 (第三人称身体模型)】
+------------------------------------------------------------
+1. 模型文件放到:
+     cstrike/models/player/<文件夹>/<文件夹>.mdl
+   例:
+     cstrike/models/player/arctic/arctic.mdl
+   文件夹名必须和 .mdl 文件名一致, 贴图/子模型也放同一个文件夹。
+   客户端是按 "models/player/文件夹名/文件夹名.mdl" 这个结构找模型的。
+
+2. 在 configs/skinsql/skins.cfg 对应阵营区块下加一行:
+     [T]      恐怖分子款
+     [CT]     反恐精英款
+
+     名字  模型路径  价格
+
+   例:
+     [T]
+     北极战士  models/player/arctic/arctic.mdl  0
+     ; 可选死亡音效 (属于上一款, 可写多行)
+     wav skin/arctic_die1.wav
+     wav skin/arctic_die2.wav
+
+     [CT]
+     德国GSG9  models/player/gsg9/gsg9.mdl  500
+
+   字段:
+     名字     全服唯一, 菜单显示和数据库识别都用它, 定下后别改
+     模型     完整路径, 从 models/ 开始, 必须以 models/player/ 开头
+     价格     GBIC 点数, 0 = 免费
+     wav      可选, 该款皮肤的死亡音效, 相对 sound/ 的路径
+              可写多行; 一行里用逗号分隔多条也可以; 死亡时随机播一条
+
+3. 生效: 换图/重启, 或管理员 /cpm -> MySQL链接 -> 重新同步皮肤目录。
+
+4. 说明:
+   - 人物皮肤只影响 "第三人称身体": 别人、观战、第三人称摄像看到的样子。
+   - CS1.6 第一人称只能看到自己的手臂/武器, 人物皮肤不会改变第一人称。
+   - 模型文件不存在会预缓存失败, 该款不进商店 (AMXX 日志有记录)。
+   - 想看自己的人物的, 用服务器第三人称摄像插件/观战视角即可。
+
+------------------------------------------------------------
+【二、第一人称 / 第三人称模型 (刀皮、投掷物)】
+------------------------------------------------------------
+CS1.6 的武器模型分三种, 文件名前缀不同:
+  v_  第一人称: 自己手里看到的模型 (view model)
+  p_  第三人称: 别人 / 观战看到的持枪模型 (player model)
+  w_  世界模型: 丢在地上 / 世界里的模型 (world model)
+
+刀皮 (configs/KnifeModels.ini):
+  [刀名]
+  V_MODEL = models/v_knife_xxx.mdl    ; 第一人称
+  P_MODEL = models/p_knife_xxx.mdl    ; 第三人称
+  PRICE   = 300                       ; 商店价格, 0 = 免费
+
+  - 只写 V_MODEL: 自己看到新刀, 别人看到默认 p_knife.mdl。
+  - 两个都写: 第一人称和第三人称都是新刀。
+  - 都不写或文件不存在: 回退默认 v_knife.mdl / p_knife.mdl。
+  - 刀名必须和 knife_skins.cfg 里的名字完全一致, 价格才会被覆盖。
+  - 路径都从 models/ 开始; 文件放 cstrike/models/ 下。
+
+投掷物皮肤 (configs/skinsql/nade_skins.cfg):
+  一行一个:
+    名字  v_模型路径  价格  smoke|flash
+
+  例:
+    my_smoke  nade/v_smoke_blue  500  smoke
+    my_flash  nade/v_flash_gold  300  flash
+
+  - 写 v_ 模型即可, 插件会自动找同目录的:
+      v_xxx.mdl  (第一人称)
+      p_xxx.mdl  (第三人称, 有就自动用)
+      w_xxx.mdl  (世界/地上模型, 有就自动预缓存)
+  - 只有 v_ 也能用: 第一人称变, 第三人称/地上保持默认。
+  - 路径可以写 models/nade/xxx 或 nade/xxx, 不加 .mdl 也可以。
+  - 前 nade_free 个 (按配置出现顺序) 免费, 其余按价格卖。
+
+------------------------------------------------------------
+【三、声音配置 (支持第三方自定义 wav)】
+------------------------------------------------------------
+1. 能配的声音有两类:
+   a) 人物皮肤死亡音效  -> configs/skinsql/skins.cfg 的 wav 行
+   b) 刀的音效          -> configs/KnifeModels.ini 的 *_SOUND
+   投掷物皮肤目前只换模型, 没有独立音效配置。
+
+2. 文件放哪:
+     声音文件放到  cstrike/sound/<子目录>/<文件名>.wav
+   配置里写相对 sound/ 的路径, 不要写 sound/ 前缀, 不要写盘符:
+     文件: cstrike/sound/skin/miku.wav
+     配置: wav skin/miku.wav
+
+   刀音效同理:
+     文件: cstrike/sound/knife/my_deploy.wav
+     配置: DEPLOY_SOUND = knife/my_deploy.wav
+
+3. 支持什么格式:
+   - 用 PCM WAV (推荐 16-bit, 单声道, 11025 或 22050 Hz)。
+   - CS1.6 的 precache_sound / emit_sound 不支持 mp3,
+     所以事件音效不要用 .mp3, 否则客户端没声音或报错。
+   - 文件名建议全小写英文/数字/下划线, 不要用中文和空格。
+
+4. 死亡音效 (skins.cfg):
+     [T]
+     北极战士  models/player/arctic/arctic.mdl  0
+     wav skin/arctic_die1.wav
+     wav skin/arctic_die2.wav
+
+   - 音效行属于它上面那一款皮肤。
+   - 一款可以写多行 wav; 死亡时随机选一条。
+   - 也可以一行写多条: wav skin/a.wav,skin/b.wav
+   - 多款皮肤可以复用同一个 wav。
+   - 不写 wav = 该款死亡时用原版音效。
+
+5. 刀音效 (KnifeModels.ini, 写在对应 [刀名] 下面):
+     SELECT_SOUND  = 在商店里选中这把刀时的音效
+     DEPLOY_SOUND  = 切刀 / 掏刀
+     SLASH_SOUND   = 轻砍挥刀
+     STAB_SOUND    = 重刀捅
+     HIT_SOUND     = 砍到人
+     HITWALL_SOUND = 砍到墙
+     SELECT_MESSAGE = 选中时的聊天提示 (支持颜色代码, 可写多行)
+
+   例:
+     [爪子刀女手]
+     V_MODEL = models/v_knife4.mdl
+     P_MODEL = models/p_knife4.mdl
+     PRICE = 300
+     SELECT_SOUND = knife/select.wav
+     DEPLOY_SOUND = knife/deploy.wav
+     SLASH_SOUND  = knife/slash.wav
+     STAB_SOUND   = knife/stab.wav
+     HIT_SOUND    = knife/hit.wav
+     HITWALL_SOUND = knife/hitwall.wav
+
+   - 缺哪个就写哪个, 不写的部分用原版音效。
+   - 文件不存在会在 AMXX 日志报错并跳过。
+
+6. 预缓存 / 下载:
+   - 所有模型和声音在地图开始时会预缓存, 文件必须提前放好。
+   - 客户端也要有这些文件:
+       正版服/普通服: 放进 FastDL, 目录结构与服务器一致
+         FastDL/sound/skin/xxx.wav
+         FastDL/models/player/xxx/xxx.mdl
+       或让玩家进服自动下载 (sv_allowdownload 1)。
+   - 只放服务器、客户端没有, 会出现空模型或没声音。
+
+------------------------------------------------------------
+【四、其他常用配置】
+------------------------------------------------------------
+  configs/custom_player_models.cfg (人物模型引擎参数, 自动生成):
+    cpm_no_corpses "1"   1 = 死亡尸体不显示自定义皮肤
+    cpm_lod_distance     已忽略, 不用改
+
+  皮肤购买 / 租期:
+    rent_days      默认租期天数, 0 = 买一次永久
+    upgrade_price  已购限时皮肤升级永久的价格
+
+  刀皮 / 投掷物免费数量:
+    knife_free     前 N 把刀免费
+    nade_free      前 N 个投掷物皮肤免费
+
+  点数:
+    每日签到 /sign, 在线奖励按 playtime_seconds 计算,
+    奖励数量在 [SETTINGS] 的 checkin_bonus / playtime_bonus。
 
 【菜单与命令】
   /skin      玩家皮肤商店

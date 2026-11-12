@@ -100,6 +100,87 @@ hns-skin-system/
 
 默认数据库是本地 SQLite：`addons/amxmodx/data/sqlite3/skinsql.sq3`，表由插件自动创建。改用 MySQL 时把 `skinsql.cfg.example` 复制为 `skinsql.cfg` 填好账号，再把 `skins.cfg` 改成 `storage mysql`。
 
+### 添加人物皮肤（第三人称身体模型）
+
+1. 模型放到 `cstrike/models/player/<文件夹>/<文件夹>.mdl`，文件夹名必须和 `.mdl` 同名，贴图放同一文件夹。
+2. 在 `skins.cfg` 的 `[T]` 或 `[CT]` 下加一行：
+
+   ```
+   [T]
+   北极战士  models/player/arctic/arctic.mdl  0
+   wav skin/arctic_die1.wav
+   wav skin/arctic_die2.wav
+
+   [CT]
+   德国GSG9  models/player/gsg9/gsg9.mdl  500
+   ```
+
+   格式：`名字  模型路径  价格`。名字是全服唯一识别名，玩家买过之后不要改；`wav` 行属于它上面那一款，可写多行（或一行逗号分隔），死亡时随机播一条。
+3. 换图生效，或 `/cpm` → MySQL 状态 → **重新同步皮肤目录**。
+
+人物皮肤只改变**第三人称身体**（别人、观战、第三人称摄像看到的样子）。CS 1.6 的第一人称只能看到自己的手臂和武器，人物模型不会改变第一人称。
+
+### 第一人称 / 第三人称武器模型
+
+CS 1.6 的武器模型用三种前缀：
+
+| 前缀 | 视角 | 说明 |
+|---|---|---|
+| `v_` | 第一人称 | 自己手里看到的模型 |
+| `p_` | 第三人称 | 别人 / 观战看到的持枪模型 |
+| `w_` | 世界模型 | 丢在地上 / 世界里的模型 |
+
+**刀皮** — `configs/KnifeModels.ini`：
+
+```
+[爪子刀女手]
+V_MODEL = models/v_knife4.mdl    ; 第一人称
+P_MODEL = models/p_knife4.mdl    ; 第三人称
+PRICE   = 300                    ; 0 = 免费
+```
+
+- 只写 `V_MODEL`：自己看到新刀，别人看到默认 `p_knife.mdl`。
+- 两个都写：第一人称和第三人称都是新刀。
+- 不写或文件不存在：回退 `v_knife.mdl` / `p_knife.mdl`。
+- 段名要和 `knife_skins.cfg` 完全一致，价格覆盖才生效。
+
+**投掷物** — `configs/skinsql/nade_skins.cfg`，一行一个：
+
+```
+my_smoke  nade/v_smoke_blue  500  smoke
+my_flash  nade/v_flash_gold  300  flash
+```
+
+写 `v_` 路径即可，插件会自动找同目录的 `p_xxx.mdl`（第三人称）和 `w_xxx.mdl`（世界模型）并预缓存。只有 `v_` 时第一人称生效，其他视角保持默认。
+
+### 声音配置（支持第三方自定义 WAV）
+
+有两套声音可配：
+
+1. **人物皮肤死亡音效** — `skins.cfg` 里的 `wav` 行（见上）。
+2. **刀的音效** — `KnifeModels.ini` 对应刀段下的 `*_SOUND`：
+
+   ```
+   SELECT_SOUND  = knife/select.wav     ; 商店选中
+   DEPLOY_SOUND  = knife/deploy.wav     ; 掏刀 / 切刀
+   SLASH_SOUND   = knife/slash.wav      ; 轻砍
+   STAB_SOUND    = knife/stab.wav       ; 重刀
+   HIT_SOUND     = knife/hit.wav        ; 砍到人
+   HITWALL_SOUND = knife/hitwall.wav    ; 砍到墙
+   SELECT_MESSAGE = 选中提示（支持颜色代码，可写多行）
+   ```
+
+文件放置与格式：
+
+- 声音放到 `cstrike/sound/<子目录>/<文件名>.wav`。
+- 配置里写**相对 `sound/`** 的路径，不要写 `sound/` 前缀：
+  文件 `cstrike/sound/skin/miku.wav` → 配置 `wav skin/miku.wav`。
+- 用 PCM WAV（推荐 16-bit 单声道，11025 或 22050 Hz）。CS 1.6 的 `precache_sound` / `emit_sound` **不支持 mp3**，事件音效不要用 `.mp3`。
+- 文件名用小写英文/数字/下划线，不要空格和中文。
+- 模型和声音都在地图开始时预缓存。客户端也要有文件：上传到 FastDL（`FastDL/sound/...`、`FastDL/models/...`），或允许 `sv_allowdownload 1`。
+
+完整中文图文步骤见 [`docs/安装说明.txt`](docs/安装说明.txt)。
+
 ## 历史版本
 
 `versions/` 保留全部历史发行版：

@@ -49,6 +49,7 @@ Chinese install guide: [`docs/安装说明.txt`](docs/安装说明.txt).
 
 ## Feature Highlights
 
+- **Local SQLite by default, MySQL optional** — works out of the box with no database setup; switch to MySQL to share data across multiple servers
 - **Unlimited skins** — add as many as the model precache limit allows
 - **TT / CT separated** — each skin belongs to one team; players only see and buy the skin of their current team
 - **Rental + permanent** — coin purchase grants a 30-day rental (configurable); upgrade it to permanent with coins; admin grants are permanent
@@ -99,6 +100,17 @@ hns-skin-system/
 | `configs/custom_player_models.cfg` | player model engine cvars |
 
 Default database is local SQLite at `addons/amxmodx/data/sqlite3/skinsql.sq3`; tables are created automatically. To use MySQL, copy `skinsql.cfg.example` to `skinsql.cfg`, fill in the credentials and set `storage mysql` in `skins.cfg`.
+
+### Storage: local SQLite / MySQL
+
+Both are supported; local is the default.
+
+| Mode | `storage` | Details |
+|---|---|---|
+| **Local SQLite (default)** | `local` | File `addons/amxmodx/data/sqlite3/skinsql.sq3`; only the `sqlite` module is required, tables are created automatically. Best for a single server; back up by copying the `.sq3` file |
+| **MySQL** | `mysql` | Copy `skinsql.cfg.example` to `skinsql.cfg`, fill in the credentials; tables are created automatically. Servers sharing the same database share purchases, current skins and smoke colors |
+
+Stored data: `cpm_skins` (catalog), `cpm_player_skins` (owned / expiry), `cpm_player_current` (current selection), `cpm_skin_grant` (offline grant queue), `cpm_daily_checkin` (check-in), `cpm_smoke_color` (smoke color). Day-to-day changes only need `skins.cfg`; it is synced to the database on map change.
 
 ### Adding character skins (third-person body model)
 

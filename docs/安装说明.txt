@@ -7,7 +7,14 @@
   - 默认语言改为英语, 同时支持 简体中文 / 繁體中文 / English / Русский
   - 菜单重新整理: 人物皮肤(TT/CT 分开)、刀皮、投掷物、点数、烟雾颜色、管理分开
   - 支持死斗模式换边: 换边后自动套用该玩家对应阵营的皮肤, 不需要重生
+  - 支持本地 SQLite (默认, 免配置) 和 MySQL 两种存储, 可自由切换
   - 皮肤商店使用自己的数据库和点数, 不读写比赛插件的 mixsystem / 金币
+  - 租期 / 永久 / 升级永久; 管理员发放直接永久
+  - 刀皮、烟雾弹/闪光弹皮肤、每款皮肤独立死亡音效
+  - 每日签到和在线时长奖励 GBIC
+  - 离线玩家后台发放 (cpm_skin_grant 表 / amx_giveskin 命令)
+  - precache_max 保护, 避免重型 HNS 地图触发 512 模型上限崩服
+  - 正版按 SteamID 认号, 盗版 (Reunion) 按 IP+名字 认号
 
 【依赖】
   - AMX Mod X 1.10 (ReAPI 版本)
@@ -36,16 +43,37 @@
   - 玩家用 /lang 手动选过语言的, 保持玩家自己的选择, 不会被覆盖。
   - 客户端本身带 cn / tw / en / ru 语言的, 按客户端语言显示。
 
-【数据库】
-  默认本地 SQLite: addons/amxmodx/data/sqlite3/skinsql.sq3
-  表由插件自动创建, 不需要手动导入 SQL。
+【存储模式: 本地 SQLite / MySQL】
+  皮肤系统两种都支持, 默认本地, 不用装 MySQL 也能直接用。
 
-  改用 MySQL:
-    1. 复制 configs/skinsql/skinsql.cfg.example 为 configs/skinsql/skinsql.cfg
-    2. 填写 skin_host / skin_user / skin_pass / skin_db
-    3. 把 skins.cfg 顶部的 storage local 改成 storage mysql
-    4. 换图/重启生效
-  MySQL 必须用皮肤系统自己的库, 不要填比赛库。
+  一、本地 SQLite (默认, 推荐单服 / 本地服)
+     storage local
+     数据库文件: addons/amxmodx/data/sqlite3/skinsql.sq3
+     - 免配置: 只要 modules.ini 打开 sqlite 模块即可
+     - 表结构由插件自动创建, 不需要手动导入 SQL
+     - 数据只在本机这个服务器, 换服不共享
+     - 备份: 直接备份 skinsql.sq3 文件
+
+  二、MySQL (推荐多服 / 跨服)
+     storage mysql
+     连接配置: addons/amxmodx/configs/skinsql/skinsql.cfg
+     切换步骤:
+       1. 复制 skinsql.cfg.example 为 skinsql.cfg
+       2. 填写 skin_host / skin_user / skin_pass / skin_db
+       3. 把 skins.cfg 顶部 storage local 改成 storage mysql
+       4. 换图/重启生效
+     - 表结构同样由插件自动创建
+     - 多个服务器填同一个库, 就能共享购买记录 / 当前皮肤 / 烟雾颜色
+     - MySQL 必须用皮肤系统自己的库, 不要填比赛库
+
+  存了哪些数据:
+     cpm_skins          皮肤目录 (从 skins.cfg 自动同步)
+     cpm_player_skins   玩家已购买 / 到期时间
+     cpm_player_current 每个玩家 T / CT / 刀 / 投掷物 当前选择
+     cpm_skin_grant     后台待发放队列 (可离线发放)
+     cpm_daily_checkin  每日签到记录
+     cpm_smoke_color    烟雾弹颜色
+  日常改动只需要改 skins.cfg, 换图后会自动同步到数据库。
 
 【配置总览】
   configs/skinsql/skins.cfg          人物皮肤池 + 全局设置

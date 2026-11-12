@@ -49,6 +49,7 @@
 
 ## 功能
 
+- **本地 / MySQL 双存储** — 默认本地 SQLite，免配置、开箱即用；也可切到 MySQL，多服用同一个库共享数据
 - **皮肤数量不限** — 只受模型预缓存上限限制
 - **TT / CT 分开** — 每款皮肤只属于一个阵营，玩家只看到当前阵营的皮肤
 - **租期 + 永久** — 金币购买默认 30 天租期（可配置），可花金币升级永久；管理员发放直接永久
@@ -99,6 +100,17 @@ hns-skin-system/
 | `configs/custom_player_models.cfg` | 人物模型引擎参数 |
 
 默认数据库是本地 SQLite：`addons/amxmodx/data/sqlite3/skinsql.sq3`，表由插件自动创建。改用 MySQL 时把 `skinsql.cfg.example` 复制为 `skinsql.cfg` 填好账号，再把 `skins.cfg` 改成 `storage mysql`。
+
+### 存储模式（本地 / MySQL）
+
+两种都支持，默认本地：
+
+| 模式 | 配置 | 说明 |
+|---|---|---|
+| **本地 SQLite（默认）** | `storage local` | 数据库文件 `addons/amxmodx/data/sqlite3/skinsql.sq3`，只需打开 `sqlite` 模块，表自动创建；单服/本地服用这个，备份直接复制 `.sq3` 文件 |
+| **MySQL** | `storage mysql` | 复制 `skinsql.cfg.example` 为 `skinsql.cfg` 填账号，表同样自动创建；多台服务器填同一个库即可共享购买记录、当前皮肤和烟雾颜色 |
+
+存的数据：`cpm_skins`（皮肤目录）、`cpm_player_skins`（已购/到期）、`cpm_player_current`（当前选用）、`cpm_skin_grant`（后台待发放）、`cpm_daily_checkin`（签到）、`cpm_smoke_color`（烟雾颜色）。日常只需改 `skins.cfg`，换图自动同步。
 
 ### 添加人物皮肤（第三人称身体模型）
 
